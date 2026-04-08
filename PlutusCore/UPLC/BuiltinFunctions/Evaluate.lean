@@ -125,9 +125,9 @@ def evaluateBuiltinFunction (semanticsVariant : BuiltinSemanticsVariant) (b : Bu
   -- Other cryptography
   | .Keccak_256                      => Crypto.keccak_256
   | .Blake2b_224                     => Crypto.blake2b_224
+  -- Batch 5 (bitwise)
   | .IntegerToByteString             => integerToByteString
   | .ByteStringToInteger             => byteStringToInteger
-  -- Batch 5 (bitwise)
   | .AndByteString                   => andByteString
   | .OrByteString                    => orByteString
   | .XorByteString                   => xorByteString
