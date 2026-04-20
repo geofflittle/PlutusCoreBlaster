@@ -1,6 +1,7 @@
 import PlutusCore.Default
 import PlutusCore.UPLC.CekValue
 import PlutusCore.UPLC.Term
+import PlutusCore.UPLC.BuiltinFunctions.Array
 import PlutusCore.UPLC.BuiltinFunctions.Bitwise
 import PlutusCore.UPLC.BuiltinFunctions.Bool
 import PlutusCore.UPLC.BuiltinFunctions.ByteString
@@ -16,6 +17,7 @@ import PlutusCore.UPLC.BuiltinFunctions.Unit
 namespace PlutusCore.UPLC.BuiltinFunctions.Evaluate
 
 open PlutusCore.Default
+open PlutusCore.UPLC.Array
 open PlutusCore.UPLC.Term
 open PlutusCore.UPLC.CekValue
 open PlutusCore.UPLC.BuiltinFunctions.Bitwise
@@ -142,7 +144,10 @@ def evaluateBuiltinFunction (semanticsVariant : BuiltinSemanticsVariant) (b : Bu
   | .Ripemd_160                      => Crypto.ripemd_160
   -- Batch 6
   | .ExpModInteger                   => expModInteger
-  -- Batch 7
-  | .DropList                        => dropList
+  -- Batch 7 and remaining unimplemented builtins
+  | .LengthOfArray                   => lengthOfArray
+  | .ListToArray                     => listToArray
+  | .IndexArray                      => indexArray
+  | .DropList                        => fun _ => none
 
 end PlutusCore.UPLC.BuiltinFunctions.Evaluate
