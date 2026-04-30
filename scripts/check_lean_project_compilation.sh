@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 exec_found=0
+<<<<<<< HEAD
 if [[ $# -ge 1 ]]
 then
   LIB_NAME=$1
@@ -50,4 +51,5 @@ cat <<EOF
    FIND PATH   : directory to walk for .lean files (default: LIB NAME)
    EXCLUDE PATH: subdirectory under FIND PATH to skip
 EOF
+  exit 1
 fi
