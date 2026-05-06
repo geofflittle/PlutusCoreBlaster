@@ -1,0 +1,88 @@
+name: ci-conformance
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      plutus_ref:
+        description: "IntersectMBO/plutus ref (branch, tag, or commit) to test against"
+        required: false
+        default: "master"
+
+concurrency:
+  group: ci-conformance-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  LEAN_VERSION: "4.24.0"
+  Z3_VERSION: "4.15.2"
+  GLIBC_Z3: "2.39"
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Lean
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "/home/runner/.elan/bin" >> $GITHUB_PATH
+          chmod +x /home/runner/.elan/bin/*
+
+      - name: Fix Elan version
+        run: |
+          elan toolchain install ${{ env.LEAN_VERSION }}
+          elan default ${{ env.LEAN_VERSION }}
+
+      - name: Install Z3
+        run: |
+          cd /home/runner/
+          wget -q https://github.com/Z3Prover/z3/releases/download/z3-${{ env.Z3_VERSION }}/z3-${{ env.Z3_VERSION }}-x64-glibc-${{ env.GLIBC_Z3 }}.zip
+          unzip -q z3-${{ env.Z3_VERSION }}-x64-glibc-${{ env.GLIBC_Z3 }}.zip
+          chmod +x z3-${{ env.Z3_VERSION }}-x64-glibc-${{ env.GLIBC_Z3 }}.zip
+          echo "/home/runner/z3-${{ env.Z3_VERSION }}-x64-glibc-${{ env.GLIBC_Z3 }}/bin" >> $GITHUB_PATH
+
+      - name: Tools version
+        run: |
+          elan --version
+          lake --version
+          lean --version
+          z3 --version
+
+      - name: Checkout PlutusCoreBlaster
+        uses: actions/checkout@v6
+        with:
+          path: PlutusCoreBlaster
+
+      - name: Checkout IntersectMBO/plutus
+        uses: actions/checkout@v6
+        with:
+          repository: IntersectMBO/plutus
+          ref: ${{ github.event.inputs.plutus_ref }}
+          path: plutus
+
+      - name: Symlink .plutus-conformance
+        run: |
+          ln -s "${GITHUB_WORKSPACE}/plutus" "${GITHUB_WORKSPACE}/PlutusCoreBlaster/.plutus-conformance"
+          ls -la "${GITHUB_WORKSPACE}/PlutusCoreBlaster/.plutus-conformance/plutus-conformance/test-cases" | head
+
+      - name: Build PlutusCore
+        working-directory: PlutusCoreBlaster
+        run: make build_plutus_core
+
+      - name: Generate conformance test suite
+        working-directory: PlutusCoreBlaster
+        run: make gen_conformance_tests
+
+      - name: Build and validate conformance test suite
+        working-directory: PlutusCoreBlaster
+        run: make check_conformance
+
+      - name: Upload conformance build log
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: conformance-build
+          path: PlutusCoreBlaster/build.log

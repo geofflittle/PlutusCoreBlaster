@@ -17,6 +17,11 @@ usage:
 	@echo " - gen_conformance_tests: (Re)generate the conformance test suite under"
 	@echo "                          Tests/Conformance/Generated/ from CONFORMANCE_ROOT"
 	@echo "                          (default: .plutus-conformance/plutus-conformance)."
+	@echo " - build_conformance: Build the conformance test suite (Tests.Conformance)."
+	@echo " - check_conformance: Same as build_conformance but also checks that each"
+	@echo "                      lean file under Tests/Conformance/ is considered"
+	@echo "                      during compilation. Requires .plutus-conformance"
+	@echo "                      symlink and a previously generated test suite."
 
 .PHONY: build_plutus_core
 build_plutus_core:
@@ -40,7 +45,7 @@ clean_tests:
 
 .PHONY: check_tests
 check_tests: clean_tests
-	LEAN_NUM_THREADS=5 ./scripts/check_lean_project_compilation.sh Tests
+	LEAN_NUM_THREADS=5 ./scripts/check_lean_project_compilation.sh Tests Tests Tests/Conformance
 
 # Path to the plutus-conformance directory containing test-cases/.
 CONFORMANCE_ROOT ?= .plutus-conformance/plutus-conformance
@@ -53,6 +58,14 @@ gen_conformance_tests:
 	lake exe gen_conformance_tests $(CONFORMANCE_ROOT) \
 		--out Tests/Conformance/Generated \
 		--embed-root $(CONFORMANCE_EMBED_ROOT)
+
+.PHONY: build_conformance
+build_conformance:
+	LEAN_NUM_THREADS=5 lake build Tests.Conformance
+
+.PHONY: check_conformance
+check_conformance: clean_tests
+	LEAN_NUM_THREADS=5 ./scripts/check_lean_project_compilation.sh Tests.Conformance Tests/Conformance
 
 # Aggregate commands
 # To maintain when you add new components
