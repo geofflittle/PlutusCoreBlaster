@@ -13,6 +13,10 @@ usage:
 	@echo " - clean_tests: Clean compiled lean files for the Test suite."
 	@echo " - check_tests: Same as build_tests but also checks that each lean file"
 	@echo "                in the Test suite is considered during compilation."
+# Conformance test generator
+	@echo " - gen_conformance_tests: (Re)generate the conformance test suite under"
+	@echo "                          Tests/Conformance/Generated/ from CONFORMANCE_ROOT"
+	@echo "                          (default: .plutus-conformance/plutus-conformance)."
 
 .PHONY: build_plutus_core
 build_plutus_core:
@@ -37,6 +41,18 @@ clean_tests:
 .PHONY: check_tests
 check_tests: clean_tests
 	LEAN_NUM_THREADS=5 ./scripts/check_lean_project_compilation.sh Tests
+
+# Path to the plutus-conformance directory containing test-cases/.
+CONFORMANCE_ROOT ?= .plutus-conformance/plutus-conformance
+# Path string embedded in generated #import_uplc lines (interpreted at test-build time).
+CONFORMANCE_EMBED_ROOT ?= .plutus-conformance/plutus-conformance
+
+.PHONY: gen_conformance_tests
+gen_conformance_tests:
+	lake build gen_conformance_tests
+	lake exe gen_conformance_tests $(CONFORMANCE_ROOT) \
+		--out Tests/Conformance/Generated \
+		--embed-root $(CONFORMANCE_EMBED_ROOT)
 
 # Aggregate commands
 # To maintain when you add new components

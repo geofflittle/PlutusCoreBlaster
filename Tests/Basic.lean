@@ -12,3 +12,5 @@ import PlutusCore.Cbor.Tests
 import PlutusCore.UPLC.FlatEncoding.Tests
 import PlutusCore.UPLC.ScriptEncoding.Tests
 import PlutusCore.UPLC.TextEncoding.Tests
+
+import Tests.Conformance

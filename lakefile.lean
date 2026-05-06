@@ -18,3 +18,7 @@ lean_lib «Lemmas» where
 
 lean_lib «Cryptograph» where
   -- add library configuration options here
+
+lean_exe «gen_conformance_tests» where
+  srcDir := "scripts"
+  root := `GenConformanceTests

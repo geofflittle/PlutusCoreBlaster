@@ -285,12 +285,13 @@ def calculateStepCostr (costs : CekMachineCosts) (Sigma : State) : ExBudget :=
 
 def getBuiltinCostIfExecuted (semVar : BuiltinSemanticsVariant) (Sigma : State) : ExBudget :=
     match Sigma with
-    -- Check Return states that will call evalBuiltin with final argument
-    -- We need to include the final argument being applied in the cost calculation
+    -- Check Return states that will call evalBuiltin with final argument.
+    -- Pass args in the same order evalBuiltin sees them (V :: Vs) — last-applied
+    -- first, matching what the cost-model formulas in CostModels.lean assume.
     | State.Return (Frame.RightApplicationOfValue (CekValue.VBuiltin b Vs (a[_])) :: _) V =>
-        builtinCostSelected semVar b (Vs ++ [V])
+        builtinCostSelected semVar b (V :: Vs)
     | State.Return (Frame.LeftApplicationToValue V :: _) (CekValue.VBuiltin b Vs (a[_])) =>
-        builtinCostSelected semVar b (Vs ++ [V])
+        builtinCostSelected semVar b (V :: Vs)
     | State.Return (Frame.ForceFrame :: _) (CekValue.VBuiltin b Vs (a[_])) =>
         builtinCostSelected semVar b Vs
     | _ => ExBudget.zero
