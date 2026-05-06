@@ -58,10 +58,65 @@ jobs:
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
+          COMMENT_TIME: ${{ github.event.comment.created_at }}
+          REPO_OWNER: ${{ github.event.repository.owner.login }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          PR_NUMBER: ${{ github.event.issue.number }}
         run: |
-          pr=$(gh api "/repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}")
-          echo "sha=$(echo "$pr" | jq -r .head.sha)" >> "$GITHUB_OUTPUT"
-          echo "repo=$(echo "$pr" | jq -r .head.repo.full_name)" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+
+          # Fetch head SHA, head repo, and the head commit's pushedDate via GraphQL.
+          # `pushedDate` is a server-set timestamp, unlike author.date / committer.date
+          # which a malicious PR author can backdate. We use it to close the TOCTOU
+          # window between the maintainer's `/run-conformance` comment and the
+          # workflow's checkout: if the head was pushed AFTER the comment, refuse.
+          query='query($owner: String!, $repo: String!, $num: Int!) {
+            repository(owner: $owner, name: $repo) {
+              pullRequest(number: $num) {
+                headRefOid
+                headRepository { nameWithOwner }
+                commits(last: 1) {
+                  nodes {
+                    commit {
+                      pushedDate
+                      committedDate
+                    }
+                  }
+                }
+              }
+            }
+          }'
+
+          result=$(gh api graphql \
+            -f query="$query" \
+            -F owner="$REPO_OWNER" \
+            -F repo="$REPO_NAME" \
+            -F num="$PR_NUMBER")
+
+          head_sha=$(echo "$result" | jq -r '.data.repository.pullRequest.headRefOid')
+          head_repo=$(echo "$result" | jq -r '.data.repository.pullRequest.headRepository.nameWithOwner')
+          pushed_date=$(echo "$result" | jq -r '.data.repository.pullRequest.commits.nodes[0].commit.pushedDate')
+          committed_date=$(echo "$result" | jq -r '.data.repository.pullRequest.commits.nodes[0].commit.committedDate')
+
+          # pushedDate can be null for some commits (e.g. very old commits). Fall
+          # back to committedDate with a warning — the attacker-controllable
+          # fallback is acceptable for that edge case but worth flagging.
+          effective_date="$pushed_date"
+          if [[ "$effective_date" == "null" ]]; then
+            echo "::warning::pushedDate is null for $head_sha; falling back to committedDate ($committed_date), which is user-settable."
+            effective_date="$committed_date"
+          fi
+
+          if [[ "$effective_date" > "$COMMENT_TIME" ]]; then
+            echo "::error::PR head $head_sha was pushed at $effective_date, after the" \
+                 "maintainer's /run-conformance comment at $COMMENT_TIME. Refusing" \
+                 "to run on un-reviewed code; a maintainer must comment again to re-authorize."
+            exit 1
+          fi
+
+          echo "Authorized PR head: $head_sha (pushed $effective_date, comment $COMMENT_TIME)"
+          echo "sha=$head_sha" >> "$GITHUB_OUTPUT"
+          echo "repo=$head_repo" >> "$GITHUB_OUTPUT"
 
       - name: Resolve plutus ref
         id: plutus
