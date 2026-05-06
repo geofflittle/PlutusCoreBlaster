@@ -92,6 +92,14 @@ gen_conformance_tests:
 		--out Tests/Conformance/Generated \
 		--embed-root $(CONFORMANCE_EMBED_ROOT)
 
+.PHONY: build_conformance
+build_conformance:
+	LEAN_NUM_THREADS=5 lake build Tests.Conformance
+
+.PHONY: check_conformance
+check_conformance: clean_tests
+	LEAN_NUM_THREADS=5 ./scripts/check_lean_project_compilation.sh Tests.Conformance Tests/Conformance
+
 # Aggregate commands
 # To maintain when you add new components
 .PHONY: build_all
