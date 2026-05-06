@@ -2,6 +2,7 @@ name: ci-conformance
 
 permissions:
   contents: read
+  pull-requests: write
 
 on:
   workflow_dispatch:
@@ -10,9 +11,11 @@ on:
         description: "IntersectMBO/plutus ref (branch, tag, or commit) to test against"
         required: false
         default: "master"
+  issue_comment:
+    types: [created]
 
 concurrency:
-  group: ci-conformance-${{ github.ref }}
+  group: ci-conformance-${{ github.event.issue.number || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -22,9 +25,73 @@ env:
 
 jobs:
   conformance:
+    # Run on:
+    #   - any workflow_dispatch invocation, OR
+    #   - a PR comment whose body starts with the trigger phrase, authored by
+    #     a project maintainer (repo owner, org member, or invited collaborator).
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request != null &&
+       startsWith(github.event.comment.body, '/run-conformance') &&
+       (github.event.comment.author_association == 'OWNER' ||
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'COLLABORATOR'))
     runs-on: ubuntu-latest
 
     steps:
+      - name: Acknowledge comment trigger
+        if: github.event_name == 'issue_comment'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Add an "eyes" reaction to the triggering comment so the author sees
+          # the workflow picked it up. Best-effort — failures here don't matter.
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions" \
+            -f content='eyes' || true
+
+      - name: Resolve PR head ref
+        if: github.event_name == 'issue_comment'
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pr=$(gh api "/repos/${{ github.repository }}/pulls/${{ github.event.issue.number }}")
+          echo "sha=$(echo "$pr" | jq -r .head.sha)" >> "$GITHUB_OUTPUT"
+          echo "repo=$(echo "$pr" | jq -r .head.repo.full_name)" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve plutus ref
+        id: plutus
+        env:
+          # Pass the comment body via env var (never interpolate untrusted input
+          # directly into the shell command).
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          DEFAULT_REF: ${{ github.event.inputs.plutus_ref || 'master' }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [[ "$EVENT_NAME" == "issue_comment" ]]; then
+            # Take the first whitespace-separated token after the trigger phrase
+            # on the first line of the comment. Empty -> 'master'.
+            first_line=$(printf '%s\n' "$COMMENT_BODY" | head -n1)
+            ref=$(echo "$first_line" | sed -E 's|^/run-conformance[[:space:]]*||' | awk '{print $1}')
+            if [[ -z "$ref" ]]; then
+              ref=master
+            fi
+            # Whitelist refs to git-safe characters (alnum, dot, dash, underscore,
+            # slash). Tags like v1.2.3 and 40-char SHAs both match.
+            if ! [[ "$ref" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+              echo "Refusing unsafe plutus ref: $ref" >&2
+              exit 1
+            fi
+          else
+            ref=$DEFAULT_REF
+          fi
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "Resolved IntersectMBO/plutus ref: $ref"
+
       - name: Setup Lean
         run: |
           curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
@@ -54,13 +121,15 @@ jobs:
       - name: Checkout PlutusCoreBlaster
         uses: actions/checkout@v6
         with:
+          repository: ${{ steps.pr.outputs.repo || github.repository }}
+          ref: ${{ steps.pr.outputs.sha || github.ref }}
           path: PlutusCoreBlaster
 
       - name: Checkout IntersectMBO/plutus
         uses: actions/checkout@v6
         with:
           repository: IntersectMBO/plutus
-          ref: ${{ github.event.inputs.plutus_ref }}
+          ref: ${{ steps.plutus.outputs.ref }}
           path: plutus
 
       - name: Symlink .plutus-conformance
