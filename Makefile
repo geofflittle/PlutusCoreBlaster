@@ -80,6 +80,18 @@ build_conformance:
 check_conformance: clean_tests
 	./scripts/check_lean_project_compilation.sh Tests.Conformance Tests/Conformance
 
+# Path to the plutus-conformance directory containing test-cases/.
+CONFORMANCE_ROOT ?= .plutus-conformance/plutus-conformance
+# Path string embedded in generated #import_uplc lines (interpreted at test-build time).
+CONFORMANCE_EMBED_ROOT ?= .plutus-conformance/plutus-conformance
+
+.PHONY: gen_conformance_tests
+gen_conformance_tests:
+	lake build gen_conformance_tests
+	lake exe gen_conformance_tests $(CONFORMANCE_ROOT) \
+		--out Tests/Conformance/Generated \
+		--embed-root $(CONFORMANCE_EMBED_ROOT)
+
 # Aggregate commands
 # To maintain when you add new components
 .PHONY: build_all

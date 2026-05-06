@@ -1,8 +1,12 @@
 import PlutusCore.UPLC.CekMachine
 <<<<<<< HEAD
+<<<<<<< HEAD
 import PlutusCore.UPLC.PlutusScript
 =======
 >>>>>>> a264431 (test: add Plutus conformance test suite (1134 test cases))
+=======
+import PlutusCore.UPLC.PlutusScript
+>>>>>>> 792d81e (Fixes for compliance test suite)
 import PlutusCore.UPLC.ScriptEncoding.Basic
 
 /-- A variant of `#import_uplc` for conformance parse-error tests.
@@ -50,9 +54,13 @@ open PlutusCore.UPLC.CekMachine
 open PlutusCore.UPLC.CekValue
 open PlutusCore.UPLC.Term
 <<<<<<< HEAD
+<<<<<<< HEAD
 open PlutusCore.UPLC.PlutusScript
 =======
 >>>>>>> a264431 (test: add Plutus conformance test suite (1134 test cases))
+=======
+open PlutusCore.UPLC.PlutusScript
+>>>>>>> 792d81e (Fixes for compliance test suite)
 open PlutusCore.UPLC.ExBudget
 open PlutusCore.Default
 
@@ -208,6 +216,7 @@ def conformanceMaxBudget : ExBudget :=
     Uses the step-limited evaluator with PlutusV3 semantics.
     Returns true iff both evaluate to the same ground value (or both error). -/
 <<<<<<< HEAD
+<<<<<<< HEAD
 def programsEvalEquiv (p1 p2 : PlutusScript) : Bool :=
   match cekExecuteProgram p1.script [] conformanceSteps,
         cekExecuteProgram p2.script [] conformanceSteps with
@@ -216,6 +225,11 @@ def programsEvalEquiv (p1 p2 : PlutusScript) : Bool :=
 def programsEvalEquiv (p1 p2 : Program) : Bool :=
   match cekExecuteProgram p1 [] conformanceSteps,
         cekExecuteProgram p2 [] conformanceSteps with
+=======
+def programsEvalEquiv (p1 p2 : PlutusScript) : Bool :=
+  match cekExecuteProgram p1.script [] conformanceSteps,
+        cekExecuteProgram p2.script [] conformanceSteps with
+>>>>>>> 792d81e (Fixes for compliance test suite)
   | State.Halt v1, State.Halt v2 => v1 == v2
 >>>>>>> a264431 (test: add Plutus conformance test suite (1134 test cases))
   | State.Error,   State.Error   => true
@@ -223,17 +237,23 @@ def programsEvalEquiv (p1 p2 : Program) : Bool :=
 
 /-- Check whether a program evaluates to an error (evaluation failure). -/
 <<<<<<< HEAD
+<<<<<<< HEAD
 def programEvalsToError (p : PlutusScript) : Bool :=
   match cekExecuteProgram p.script [] conformanceSteps with
 =======
 def programEvalsToError (p : Program) : Bool :=
   match cekExecuteProgram p [] conformanceSteps with
 >>>>>>> a264431 (test: add Plutus conformance test suite (1134 test cases))
+=======
+def programEvalsToError (p : PlutusScript) : Bool :=
+  match cekExecuteProgram p.script [] conformanceSteps with
+>>>>>>> 792d81e (Fixes for compliance test suite)
   | State.Error => true
   | _           => false
 
 /-- Check whether a program's cpu and memory budget matches the expected values.
     Uses PlutusV3 post-Conway semantics, which matches the conformance test defaults. -/
+<<<<<<< HEAD
 <<<<<<< HEAD
 def budgetMatches (p : PlutusScript) (expectedCpu expectedMem : Nat) : Bool :=
   match cekExecuteProgramWithBudget p.script .plutusV3 .postConway [] conformanceMaxBudget with
@@ -244,6 +264,10 @@ def budgetMatches (p : PlutusScript) (expectedCpu expectedMem : Nat) : Bool :=
 =======
 def budgetMatches (p : Program) (expectedCpu expectedMem : Nat) : Bool :=
   match cekExecuteProgramWithBudget p .plutusV3 .postConway [] conformanceMaxBudget with
+=======
+def budgetMatches (p : PlutusScript) (expectedCpu expectedMem : Nat) : Bool :=
+  match cekExecuteProgramWithBudget p.script .plutusV3 .postConway [] conformanceMaxBudget with
+>>>>>>> 792d81e (Fixes for compliance test suite)
   | EvaluationResult.Success _ b =>
       -- Haskell uses Int64 saturation arithmetic: costs exceeding Int64.max
       -- saturate to Int64.max rather than overflowing. Apply the same cap here.
