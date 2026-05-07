@@ -11,7 +11,10 @@ open Lean Elab Command Term in
 @[command_elab conformanceImportUplc]
 def conformanceImportUplcImpl : CommandElab := fun stx => do
   let declName := stx[1].getId
-  let path     := stx[2].isStrLit?.getD ""
+  let path ←
+    match stx[2].isStrLit? with
+    | some x => pure x
+    | none   => throwError "empty path"
   -- Read the file; any IO error counts as a parse error
   let content ← try IO.FS.readFile path catch _ => throwError "Parsing error"
   -- Parse the UPLC text; any parse error emits the standard message
@@ -108,7 +111,7 @@ mutual
   private partial def cekValueBeq : CekValue → CekValue → Bool
     | .VCon c1,              .VCon c2              => c1 == c2
     | .VConstr n1 args1,     .VConstr n2 args2     => n1 == n2 && cekValueListBeq args1 args2
-    | .VBuiltin f1 args1 e1, .VBuiltin f2 args2 e2 => f1 == f2 && e1 == e2 && cekValueListBeq args1 args2
+    | .VBuiltin f1 args1 _,  .VBuiltin f2 args2 _  => f1 == f2 && cekValueListBeq args1 args2
     | .VLam x1 t1 env1,      .VLam x2 t2 env2      =>
         alphaEqWith [(x1, x2)] (closeTermWithEnv env1 [x1] t1) (closeTermWithEnv env2 [x2] t2)
     | .VDelay t1 env1,       .VDelay t2 env2       =>
