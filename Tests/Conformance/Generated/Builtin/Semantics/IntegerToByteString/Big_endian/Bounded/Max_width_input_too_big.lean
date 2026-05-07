@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/max-width-input-too-big/max-width-input-too-big.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_integerToByteString_big_endian_bounded_max_width_input_too_big PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/max-width-input-too-big/max-width-input-too-big.uplc"
+#import_uplc builtin_semantics_integerToByteString_big_endian_bounded_max_width_input_too_big PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/max-width-input-too-big/max-width-input-too-big.uplc"
 
 /-- info: true -/
 #guard_msgs in

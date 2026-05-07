@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/negative-quantity/negative-quantity.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_unValueData_negative_quantity PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/negative-quantity/negative-quantity.uplc"
+-- #import_uplc builtin_semantics_unValueData_negative_quantity PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/negative-quantity/negative-quantity.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/negative-quantity/negative-quantity.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_unValueData_negative_quantity_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/negative-quantity/negative-quantity.uplc.expected"
+-- #import_uplc builtin_semantics_unValueData_negative_quantity_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/negative-quantity/negative-quantity.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

@@ -8,7 +8,7 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/non-map-bytes/non-map-bytes.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_unValueData_non_map_bytes PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/non-map-bytes/non-map-bytes.uplc"
+-- #import_uplc builtin_semantics_unValueData_non_map_bytes PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/non-map-bytes/non-map-bytes.uplc"
 
 -- /-- info: true -/
 -- #guard_msgs in

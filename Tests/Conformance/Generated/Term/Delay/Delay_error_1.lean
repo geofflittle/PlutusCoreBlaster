@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/delay/delay-error-1/delay-error-1.uplc' -/
 #guard_msgs in
-#import_uplc term_delay_delay_error_1 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/delay/delay-error-1/delay-error-1.uplc"
+#import_uplc term_delay_delay_error_1 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/delay/delay-error-1/delay-error-1.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/delay/delay-error-1/delay-error-1.uplc.expected' -/
 #guard_msgs in
-#import_uplc term_delay_delay_error_1_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/delay/delay-error-1/delay-error-1.uplc.expected"
+#import_uplc term_delay_delay_error_1_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/delay/delay-error-1/delay-error-1.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

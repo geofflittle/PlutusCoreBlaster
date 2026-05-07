@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unMapData/unMapData-01/unMapData-01.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_unMapData_unMapData_01 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unMapData/unMapData-01/unMapData-01.uplc"
+#import_uplc builtin_semantics_unMapData_unMapData_01 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unMapData/unMapData-01/unMapData-01.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unMapData/unMapData-01/unMapData-01.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_unMapData_unMapData_01_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unMapData/unMapData-01/unMapData-01.uplc.expected"
+#import_uplc builtin_semantics_unMapData_unMapData_01_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unMapData/unMapData-01/unMapData-01.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

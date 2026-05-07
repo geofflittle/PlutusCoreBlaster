@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/decodeUtf8/decodeUtf8-ok/decodeUtf8-ok.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_decodeUtf8_decodeUtf8_ok PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/decodeUtf8/decodeUtf8-ok/decodeUtf8-ok.uplc"
+#import_uplc builtin_semantics_decodeUtf8_decodeUtf8_ok PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/decodeUtf8/decodeUtf8-ok/decodeUtf8-ok.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/decodeUtf8/decodeUtf8-ok/decodeUtf8-ok.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_decodeUtf8_decodeUtf8_ok_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/decodeUtf8/decodeUtf8-ok/decodeUtf8-ok.uplc.expected"
+#import_uplc builtin_semantics_decodeUtf8_decodeUtf8_ok_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/decodeUtf8/decodeUtf8-ok/decodeUtf8-ok.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

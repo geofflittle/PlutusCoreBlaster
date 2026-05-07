@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_hashToGroup/hash-empty-dst/hash-empty-dst.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G1_hashToGroup_hash_empty_dst PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_hashToGroup/hash-empty-dst/hash-empty-dst.uplc"
+#import_uplc builtin_semantics_bls12_381_G1_hashToGroup_hash_empty_dst PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_hashToGroup/hash-empty-dst/hash-empty-dst.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_hashToGroup/hash-empty-dst/hash-empty-dst.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G1_hashToGroup_hash_empty_dst_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_hashToGroup/hash-empty-dst/hash-empty-dst.uplc.expected"
+#import_uplc builtin_semantics_bls12_381_G1_hashToGroup_hash_empty_dst_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_hashToGroup/hash-empty-dst/hash-empty-dst.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

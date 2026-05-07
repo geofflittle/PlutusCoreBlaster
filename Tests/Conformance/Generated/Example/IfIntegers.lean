@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/IfIntegers/IfIntegers.uplc' -/
 #guard_msgs in
-#import_uplc example_IfIntegers PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/IfIntegers/IfIntegers.uplc"
+#import_uplc example_IfIntegers PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/IfIntegers/IfIntegers.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/IfIntegers/IfIntegers.uplc.expected' -/
 #guard_msgs in
-#import_uplc example_IfIntegers_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/IfIntegers/IfIntegers.uplc.expected"
+#import_uplc example_IfIntegers_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/IfIntegers/IfIntegers.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

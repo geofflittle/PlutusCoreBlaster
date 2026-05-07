@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/expModInteger/extra/expModInteger-65/expModInteger-65.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_expModInteger_extra_expModInteger_65 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/expModInteger/extra/expModInteger-65/expModInteger-65.uplc"
+#import_uplc builtin_semantics_expModInteger_extra_expModInteger_65 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/expModInteger/extra/expModInteger-65/expModInteger-65.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/expModInteger/extra/expModInteger-65/expModInteger-65.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_expModInteger_extra_expModInteger_65_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/expModInteger/extra/expModInteger-65/expModInteger-65.uplc.expected"
+#import_uplc builtin_semantics_expModInteger_extra_expModInteger_65_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/expModInteger/extra/expModInteger-65/expModInteger-65.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

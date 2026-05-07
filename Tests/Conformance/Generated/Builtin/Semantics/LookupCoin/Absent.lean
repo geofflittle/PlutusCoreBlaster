@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/lookupCoin/absent/absent.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_lookupCoin_absent PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/lookupCoin/absent/absent.uplc"
+-- #import_uplc builtin_semantics_lookupCoin_absent PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/lookupCoin/absent/absent.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/lookupCoin/absent/absent.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_lookupCoin_absent_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/lookupCoin/absent/absent.uplc.expected"
+-- #import_uplc builtin_semantics_lookupCoin_absent_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/lookupCoin/absent/absent.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

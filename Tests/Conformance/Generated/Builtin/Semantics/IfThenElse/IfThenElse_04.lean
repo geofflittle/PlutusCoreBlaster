@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/ifThenElse/ifThenElse-04/ifThenElse-04.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_ifThenElse_ifThenElse_04 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/ifThenElse/ifThenElse-04/ifThenElse-04.uplc"
+#import_uplc builtin_semantics_ifThenElse_ifThenElse_04 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/ifThenElse/ifThenElse-04/ifThenElse-04.uplc"
 
 /-- info: true -/
 #guard_msgs in

@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/zero-positive/zero-positive.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_insertCoin_zero_positive PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/zero-positive/zero-positive.uplc"
+-- #import_uplc builtin_semantics_insertCoin_zero_positive PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/zero-positive/zero-positive.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/zero-positive/zero-positive.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_insertCoin_zero_positive_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/zero-positive/zero-positive.uplc.expected"
+-- #import_uplc builtin_semantics_insertCoin_zero_positive_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/zero-positive/zero-positive.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

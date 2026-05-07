@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/positive-nonempty/positive-nonempty.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_insertCoin_positive_nonempty PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/positive-nonempty/positive-nonempty.uplc"
+-- #import_uplc builtin_semantics_insertCoin_positive_nonempty PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/positive-nonempty/positive-nonempty.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/positive-nonempty/positive-nonempty.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_insertCoin_positive_nonempty_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/positive-nonempty/positive-nonempty.uplc.expected"
+-- #import_uplc builtin_semantics_insertCoin_positive_nonempty_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/positive-nonempty/positive-nonempty.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

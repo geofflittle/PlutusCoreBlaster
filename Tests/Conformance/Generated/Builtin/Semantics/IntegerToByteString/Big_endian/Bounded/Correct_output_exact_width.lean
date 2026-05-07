@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/correct-output-exact-width/correct-output-exact-width.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_integerToByteString_big_endian_bounded_correct_output_exact_width PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/correct-output-exact-width/correct-output-exact-width.uplc"
+#import_uplc builtin_semantics_integerToByteString_big_endian_bounded_correct_output_exact_width PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/correct-output-exact-width/correct-output-exact-width.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/correct-output-exact-width/correct-output-exact-width.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_integerToByteString_big_endian_bounded_correct_output_exact_width_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/correct-output-exact-width/correct-output-exact-width.uplc.expected"
+#import_uplc builtin_semantics_integerToByteString_big_endian_bounded_correct_output_exact_width_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/correct-output-exact-width/correct-output-exact-width.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

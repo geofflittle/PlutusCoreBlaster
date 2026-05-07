@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_compress/compress/compress.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G1_compress_compress PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_compress/compress/compress.uplc"
+#import_uplc builtin_semantics_bls12_381_G1_compress_compress PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_compress/compress/compress.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_compress/compress/compress.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G1_compress_compress_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_compress/compress/compress.uplc.expected"
+#import_uplc builtin_semantics_bls12_381_G1_compress_compress_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_compress/compress/compress.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

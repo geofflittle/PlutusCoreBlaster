@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/iteWrongCondTypePartiallyApplied/iteWrongCondTypePartiallyApplied.uplc' -/
 #guard_msgs in
-#import_uplc builtin_interleaving_iteWrongCondTypePartiallyApplied PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/iteWrongCondTypePartiallyApplied/iteWrongCondTypePartiallyApplied.uplc"
+#import_uplc builtin_interleaving_iteWrongCondTypePartiallyApplied PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/iteWrongCondTypePartiallyApplied/iteWrongCondTypePartiallyApplied.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/iteWrongCondTypePartiallyApplied/iteWrongCondTypePartiallyApplied.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_interleaving_iteWrongCondTypePartiallyApplied_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/iteWrongCondTypePartiallyApplied/iteWrongCondTypePartiallyApplied.uplc.expected"
+#import_uplc builtin_interleaving_iteWrongCondTypePartiallyApplied_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/iteWrongCondTypePartiallyApplied/iteWrongCondTypePartiallyApplied.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

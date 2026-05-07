@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/single-entry/single-entry.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_unValueData_single_entry PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/single-entry/single-entry.uplc"
+-- #import_uplc builtin_semantics_unValueData_single_entry PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/single-entry/single-entry.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/single-entry/single-entry.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_unValueData_single_entry_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/single-entry/single-entry.uplc.expected"
+-- #import_uplc builtin_semantics_unValueData_single_entry_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/single-entry/single-entry.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

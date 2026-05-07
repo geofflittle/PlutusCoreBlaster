@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/max-input-fits-max-width/max-input-fits-max-width.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_integerToByteString_big_endian_bounded_max_input_fits_max_width PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/max-input-fits-max-width/max-input-fits-max-width.uplc"
+#import_uplc builtin_semantics_integerToByteString_big_endian_bounded_max_input_fits_max_width PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/max-input-fits-max-width/max-input-fits-max-width.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/max-input-fits-max-width/max-input-fits-max-width.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_integerToByteString_big_endian_bounded_max_input_fits_max_width_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/max-input-fits-max-width/max-input-fits-max-width.uplc.expected"
+#import_uplc builtin_semantics_integerToByteString_big_endian_bounded_max_input_fits_max_width_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/max-input-fits-max-width/max-input-fits-max-width.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

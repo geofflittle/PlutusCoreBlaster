@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/expModInteger/extra/expModInteger-19/expModInteger-19.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_expModInteger_extra_expModInteger_19 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/expModInteger/extra/expModInteger-19/expModInteger-19.uplc"
+#import_uplc builtin_semantics_expModInteger_extra_expModInteger_19 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/expModInteger/extra/expModInteger-19/expModInteger-19.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/expModInteger/extra/expModInteger-19/expModInteger-19.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_expModInteger_extra_expModInteger_19_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/expModInteger/extra/expModInteger-19/expModInteger-19.uplc.expected"
+#import_uplc builtin_semantics_expModInteger_extra_expModInteger_19_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/expModInteger/extra/expModInteger-19/expModInteger-19.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

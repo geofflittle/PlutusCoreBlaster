@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/token-missing/token-missing.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_valueContains_token_missing PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/token-missing/token-missing.uplc"
+-- #import_uplc builtin_semantics_valueContains_token_missing PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/token-missing/token-missing.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/token-missing/token-missing.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_valueContains_token_missing_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/token-missing/token-missing.uplc.expected"
+-- #import_uplc builtin_semantics_valueContains_token_missing_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/token-missing/token-missing.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

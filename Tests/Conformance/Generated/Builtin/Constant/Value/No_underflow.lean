@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/value/no-underflow/no-underflow.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_constant_value_no_underflow PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/value/no-underflow/no-underflow.uplc"
+-- #import_uplc builtin_constant_value_no_underflow PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/value/no-underflow/no-underflow.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/value/no-underflow/no-underflow.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_constant_value_no_underflow_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/value/no-underflow/no-underflow.uplc.expected"
+-- #import_uplc builtin_constant_value_no_underflow_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/value/no-underflow/no-underflow.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

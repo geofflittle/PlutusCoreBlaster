@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/multiplyIntegerForceError2/multiplyIntegerForceError2.uplc' -/
 #guard_msgs in
-#import_uplc builtin_interleaving_multiplyIntegerForceError2 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/multiplyIntegerForceError2/multiplyIntegerForceError2.uplc"
+#import_uplc builtin_interleaving_multiplyIntegerForceError2 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/multiplyIntegerForceError2/multiplyIntegerForceError2.uplc"
 
 /-- info: true -/
 #guard_msgs in

@@ -8,7 +8,7 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/data-duplicate-currencies-cancel/data-duplicate-currencies-cancel.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_unValueData_data_duplicate_currencies_cancel PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/data-duplicate-currencies-cancel/data-duplicate-currencies-cancel.uplc"
+-- #import_uplc builtin_semantics_unValueData_data_duplicate_currencies_cancel PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/data-duplicate-currencies-cancel/data-duplicate-currencies-cancel.uplc"
 
 -- /-- info: true -/
 -- #guard_msgs in

@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sha2_256/sha2_256-length-200/sha2_256-length-200.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_sha2_256_sha2_256_length_200 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sha2_256/sha2_256-length-200/sha2_256-length-200.uplc"
+#import_uplc builtin_semantics_sha2_256_sha2_256_length_200 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sha2_256/sha2_256-length-200/sha2_256-length-200.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sha2_256/sha2_256-length-200/sha2_256-length-200.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_sha2_256_sha2_256_length_200_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sha2_256/sha2_256-length-200/sha2_256-length-200.uplc.expected"
+#import_uplc builtin_semantics_sha2_256_sha2_256_length_200_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sha2_256/sha2_256-length-200/sha2_256-length-200.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/constant-case/list/list-06/list-06.uplc' -/
 #guard_msgs in
-#import_uplc term_constant_case_list_list_06 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/constant-case/list/list-06/list-06.uplc"
+#import_uplc term_constant_case_list_list_06 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/constant-case/list/list-06/list-06.uplc"
 
 /-- info: true -/
 #guard_msgs in

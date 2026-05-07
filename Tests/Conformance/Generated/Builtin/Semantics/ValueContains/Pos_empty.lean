@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/pos-empty/pos-empty.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_valueContains_pos_empty PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/pos-empty/pos-empty.uplc"
+-- #import_uplc builtin_semantics_valueContains_pos_empty PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/pos-empty/pos-empty.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/pos-empty/pos-empty.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_valueContains_pos_empty_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/pos-empty/pos-empty.uplc.expected"
+-- #import_uplc builtin_semantics_valueContains_pos_empty_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/pos-empty/pos-empty.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/value/zero-asset/zero-asset.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_constant_value_zero_asset PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/value/zero-asset/zero-asset.uplc"
+-- #import_uplc builtin_constant_value_zero_asset PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/value/zero-asset/zero-asset.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/value/zero-asset/zero-asset.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_constant_value_zero_asset_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/value/zero-asset/zero-asset.uplc.expected"
+-- #import_uplc builtin_constant_value_zero_asset_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/value/zero-asset/zero-asset.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

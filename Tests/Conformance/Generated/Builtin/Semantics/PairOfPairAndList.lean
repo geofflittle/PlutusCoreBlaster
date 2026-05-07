@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/pairOfPairAndList/pairOfPairAndList.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_pairOfPairAndList PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/pairOfPairAndList/pairOfPairAndList.uplc"
+#import_uplc builtin_semantics_pairOfPairAndList PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/pairOfPairAndList/pairOfPairAndList.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/pairOfPairAndList/pairOfPairAndList.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_pairOfPairAndList_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/pairOfPairAndList/pairOfPairAndList.uplc.expected"
+#import_uplc builtin_semantics_pairOfPairAndList_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/pairOfPairAndList/pairOfPairAndList.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

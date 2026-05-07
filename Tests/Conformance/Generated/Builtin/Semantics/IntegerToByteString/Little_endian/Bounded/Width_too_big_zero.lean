@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/width-too-big-zero/width-too-big-zero.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_integerToByteString_little_endian_bounded_width_too_big_zero PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/width-too-big-zero/width-too-big-zero.uplc"
+#import_uplc builtin_semantics_integerToByteString_little_endian_bounded_width_too_big_zero PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/width-too-big-zero/width-too-big-zero.uplc"
 
 /-- info: true -/
 #guard_msgs in

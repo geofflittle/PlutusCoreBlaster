@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/divideInteger/divideInteger-pos-pos/divideInteger-pos-pos.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_divideInteger_divideInteger_pos_pos PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/divideInteger/divideInteger-pos-pos/divideInteger-pos-pos.uplc"
+#import_uplc builtin_semantics_divideInteger_divideInteger_pos_pos PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/divideInteger/divideInteger-pos-pos/divideInteger-pos-pos.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/divideInteger/divideInteger-pos-pos/divideInteger-pos-pos.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_divideInteger_divideInteger_pos_pos_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/divideInteger/divideInteger-pos-pos/divideInteger-pos-pos.uplc.expected"
+#import_uplc builtin_semantics_divideInteger_divideInteger_pos_pos_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/divideInteger/divideInteger-pos-pos/divideInteger-pos-pos.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

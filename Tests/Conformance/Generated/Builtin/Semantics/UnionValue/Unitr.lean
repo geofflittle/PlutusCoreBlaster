@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unionValue/unitr/unitr.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_unionValue_unitr PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unionValue/unitr/unitr.uplc"
+-- #import_uplc builtin_semantics_unionValue_unitr PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unionValue/unitr/unitr.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unionValue/unitr/unitr.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_unionValue_unitr_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unionValue/unitr/unitr.uplc.expected"
+-- #import_uplc builtin_semantics_unionValue_unitr_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unionValue/unitr/unitr.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

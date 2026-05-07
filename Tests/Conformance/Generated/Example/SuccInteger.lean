@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/succInteger/succInteger.uplc' -/
 #guard_msgs in
-#import_uplc example_succInteger PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/succInteger/succInteger.uplc"
+#import_uplc example_succInteger PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/succInteger/succInteger.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/succInteger/succInteger.uplc.expected' -/
 #guard_msgs in
-#import_uplc example_succInteger_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/succInteger/succInteger.uplc.expected"
+#import_uplc example_succInteger_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/succInteger/succInteger.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

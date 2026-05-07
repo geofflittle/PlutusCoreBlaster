@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/all-zeros/all-zeros.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_byteStringToInteger_little_endian_all_zeros PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/all-zeros/all-zeros.uplc"
+#import_uplc builtin_semantics_byteStringToInteger_little_endian_all_zeros PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/all-zeros/all-zeros.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/all-zeros/all-zeros.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_byteStringToInteger_little_endian_all_zeros_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/all-zeros/all-zeros.uplc.expected"
+#import_uplc builtin_semantics_byteStringToInteger_little_endian_all_zeros_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/all-zeros/all-zeros.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/constr/constr-04/constr-04.uplc' -/
 #guard_msgs in
-#import_uplc term_constr_constr_04 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/constr/constr-04/constr-04.uplc"
+#import_uplc term_constr_constr_04 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/constr/constr-04/constr-04.uplc"
 
 /-- info: true -/
 #guard_msgs in

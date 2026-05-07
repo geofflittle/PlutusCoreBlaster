@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/modInteger/modInteger-zero/modInteger-zero.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_modInteger_modInteger_zero PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/modInteger/modInteger-zero/modInteger-zero.uplc"
+#import_uplc builtin_semantics_modInteger_modInteger_zero PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/modInteger/modInteger-zero/modInteger-zero.uplc"
 
 /-- info: true -/
 #guard_msgs in

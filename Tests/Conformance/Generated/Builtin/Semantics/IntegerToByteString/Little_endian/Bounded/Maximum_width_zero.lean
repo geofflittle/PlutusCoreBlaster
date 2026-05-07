@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/maximum-width-zero/maximum-width-zero.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_integerToByteString_little_endian_bounded_maximum_width_zero PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/maximum-width-zero/maximum-width-zero.uplc"
+#import_uplc builtin_semantics_integerToByteString_little_endian_bounded_maximum_width_zero PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/maximum-width-zero/maximum-width-zero.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/maximum-width-zero/maximum-width-zero.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_integerToByteString_little_endian_bounded_maximum_width_zero_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/maximum-width-zero/maximum-width-zero.uplc.expected"
+#import_uplc builtin_semantics_integerToByteString_little_endian_bounded_maximum_width_zero_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/maximum-width-zero/maximum-width-zero.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

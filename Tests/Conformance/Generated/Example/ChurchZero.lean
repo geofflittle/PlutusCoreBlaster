@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/churchZero/churchZero.uplc' -/
 #guard_msgs in
-#import_uplc example_churchZero PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/churchZero/churchZero.uplc"
+#import_uplc example_churchZero PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/churchZero/churchZero.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/churchZero/churchZero.uplc.expected' -/
 #guard_msgs in
-#import_uplc example_churchZero_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/churchZero/churchZero.uplc.expected"
+#import_uplc example_churchZero_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/churchZero/churchZero.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

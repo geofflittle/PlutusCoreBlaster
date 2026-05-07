@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_multiScalarMul/multiScalarMul-13d/multiScalarMul-13d.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G2_multiScalarMul_multiScalarMul_13d PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_multiScalarMul/multiScalarMul-13d/multiScalarMul-13d.uplc"
+#import_uplc builtin_semantics_bls12_381_G2_multiScalarMul_multiScalarMul_13d PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_multiScalarMul/multiScalarMul-13d/multiScalarMul-13d.uplc"
 
 /-- info: true -/
 #guard_msgs in

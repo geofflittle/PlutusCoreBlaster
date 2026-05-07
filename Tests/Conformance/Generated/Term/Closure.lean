@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/closure/closure.uplc' -/
 #guard_msgs in
-#import_uplc term_closure PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/closure/closure.uplc"
+#import_uplc term_closure PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/closure/closure.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/closure/closure.uplc.expected' -/
 #guard_msgs in
-#import_uplc term_closure_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/closure/closure.uplc.expected"
+#import_uplc term_closure_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/closure/closure.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

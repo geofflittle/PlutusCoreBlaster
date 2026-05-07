@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/signature/large-dst/large-dst.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_cardano_crypto_tests_signature_large_dst PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/signature/large-dst/large-dst.uplc"
+#import_uplc builtin_semantics_bls12_381_cardano_crypto_tests_signature_large_dst PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/signature/large-dst/large-dst.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/signature/large-dst/large-dst.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_cardano_crypto_tests_signature_large_dst_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/signature/large-dst/large-dst.uplc.expected"
+#import_uplc builtin_semantics_bls12_381_cardano_crypto_tests_signature_large_dst_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/signature/large-dst/large-dst.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

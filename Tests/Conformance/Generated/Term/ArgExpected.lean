@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/argExpected/argExpected.uplc' -/
 #guard_msgs in
-#import_uplc term_argExpected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/argExpected/argExpected.uplc"
+#import_uplc term_argExpected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/argExpected/argExpected.uplc"
 
 /-- info: true -/
 #guard_msgs in

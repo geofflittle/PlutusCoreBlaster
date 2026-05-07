@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/iteAtIntegerArrowIntegerWithCond/iteAtIntegerArrowIntegerWithCond.uplc' -/
 #guard_msgs in
-#import_uplc builtin_interleaving_iteAtIntegerArrowIntegerWithCond PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/iteAtIntegerArrowIntegerWithCond/iteAtIntegerArrowIntegerWithCond.uplc"
+#import_uplc builtin_interleaving_iteAtIntegerArrowIntegerWithCond PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/iteAtIntegerArrowIntegerWithCond/iteAtIntegerArrowIntegerWithCond.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/iteAtIntegerArrowIntegerWithCond/iteAtIntegerArrowIntegerWithCond.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_interleaving_iteAtIntegerArrowIntegerWithCond_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/iteAtIntegerArrowIntegerWithCond/iteAtIntegerArrowIntegerWithCond.uplc.expected"
+#import_uplc builtin_interleaving_iteAtIntegerArrowIntegerWithCond_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/iteAtIntegerArrowIntegerWithCond/iteAtIntegerArrowIntegerWithCond.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

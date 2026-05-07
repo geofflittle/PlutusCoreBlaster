@@ -8,7 +8,7 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/non-bytestring-token/non-bytestring-token.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_unValueData_non_bytestring_token PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/non-bytestring-token/non-bytestring-token.uplc"
+-- #import_uplc builtin_semantics_unValueData_non_bytestring_token PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/non-bytestring-token/non-bytestring-token.uplc"
 
 -- /-- info: true -/
 -- #guard_msgs in

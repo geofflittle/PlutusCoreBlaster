@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/even3/even3.uplc' -/
 #guard_msgs in
-#import_uplc example_even3 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/even3/even3.uplc"
+#import_uplc example_even3 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/even3/even3.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/even3/even3.uplc.expected' -/
 #guard_msgs in
-#import_uplc example_even3_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/even3/even3.uplc.expected"
+#import_uplc example_even3_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/even3/even3.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

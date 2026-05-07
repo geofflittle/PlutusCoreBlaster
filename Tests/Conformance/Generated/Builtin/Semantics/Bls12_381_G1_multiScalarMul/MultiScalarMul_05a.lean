@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_multiScalarMul/multiScalarMul-05a/multiScalarMul-05a.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G1_multiScalarMul_multiScalarMul_05a PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_multiScalarMul/multiScalarMul-05a/multiScalarMul-05a.uplc"
+#import_uplc builtin_semantics_bls12_381_G1_multiScalarMul_multiScalarMul_05a PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_multiScalarMul/multiScalarMul-05a/multiScalarMul-05a.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_multiScalarMul/multiScalarMul-05a/multiScalarMul-05a.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G1_multiScalarMul_multiScalarMul_05a_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_multiScalarMul/multiScalarMul-05a/multiScalarMul-05a.uplc.expected"
+#import_uplc builtin_semantics_bls12_381_G1_multiScalarMul_multiScalarMul_05a_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_multiScalarMul/multiScalarMul-05a/multiScalarMul-05a.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

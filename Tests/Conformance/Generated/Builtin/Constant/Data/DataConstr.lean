@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/data/dataConstr/dataConstr.uplc' -/
 #guard_msgs in
-#import_uplc builtin_constant_data_dataConstr PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/data/dataConstr/dataConstr.uplc"
+#import_uplc builtin_constant_data_dataConstr PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/data/dataConstr/dataConstr.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/data/dataConstr/dataConstr.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_constant_data_dataConstr_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/data/dataConstr/dataConstr.uplc.expected"
+#import_uplc builtin_constant_data_dataConstr_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/data/dataConstr/dataConstr.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

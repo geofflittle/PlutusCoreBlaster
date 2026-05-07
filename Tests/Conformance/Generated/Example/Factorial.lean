@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/factorial/factorial.uplc' -/
 #guard_msgs in
-#import_uplc example_factorial PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/factorial/factorial.uplc"
+#import_uplc example_factorial PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/factorial/factorial.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/factorial/factorial.uplc.expected' -/
 #guard_msgs in
-#import_uplc example_factorial_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/factorial/factorial.uplc.expected"
+#import_uplc example_factorial_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/factorial/factorial.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

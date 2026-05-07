@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-pos/by-pos.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_scaleValue_by_pos PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-pos/by-pos.uplc"
+-- #import_uplc builtin_semantics_scaleValue_by_pos PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-pos/by-pos.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-pos/by-pos.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_scaleValue_by_pos_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-pos/by-pos.uplc.expected"
+-- #import_uplc builtin_semantics_scaleValue_by_pos_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-pos/by-pos.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

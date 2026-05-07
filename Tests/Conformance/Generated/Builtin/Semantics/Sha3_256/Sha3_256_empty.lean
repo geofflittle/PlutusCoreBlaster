@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sha3_256/sha3_256-empty/sha3_256-empty.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_sha3_256_sha3_256_empty PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sha3_256/sha3_256-empty/sha3_256-empty.uplc"
+#import_uplc builtin_semantics_sha3_256_sha3_256_empty PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sha3_256/sha3_256-empty/sha3_256-empty.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sha3_256/sha3_256-empty/sha3_256-empty.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_sha3_256_sha3_256_empty_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sha3_256/sha3_256-empty/sha3_256-empty.uplc.expected"
+#import_uplc builtin_semantics_sha3_256_sha3_256_empty_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sha3_256/sha3_256-empty/sha3_256-empty.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

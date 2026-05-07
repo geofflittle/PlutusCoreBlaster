@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/unlifting-unsat/unlifting-unsat.uplc' -/
 #guard_msgs in
-#import_uplc term_unlifting_unsat PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/unlifting-unsat/unlifting-unsat.uplc"
+#import_uplc term_unlifting_unsat PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/unlifting-unsat/unlifting-unsat.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/unlifting-unsat/unlifting-unsat.uplc.expected' -/
 #guard_msgs in
-#import_uplc term_unlifting_unsat_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/unlifting-unsat/unlifting-unsat.uplc.expected"
+#import_uplc term_unlifting_unsat_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/unlifting-unsat/unlifting-unsat.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

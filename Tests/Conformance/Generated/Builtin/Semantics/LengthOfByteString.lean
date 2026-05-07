@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/lengthOfByteString/lengthOfByteString.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_lengthOfByteString PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/lengthOfByteString/lengthOfByteString.uplc"
+#import_uplc builtin_semantics_lengthOfByteString PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/lengthOfByteString/lengthOfByteString.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/lengthOfByteString/lengthOfByteString.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_lengthOfByteString_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/lengthOfByteString/lengthOfByteString.uplc.expected"
+#import_uplc builtin_semantics_lengthOfByteString_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/lengthOfByteString/lengthOfByteString.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

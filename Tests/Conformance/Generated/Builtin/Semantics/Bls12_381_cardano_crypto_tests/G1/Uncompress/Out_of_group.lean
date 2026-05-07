@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/G1/uncompress/out-of-group/out-of-group.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_cardano_crypto_tests_G1_uncompress_out_of_group PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/G1/uncompress/out-of-group/out-of-group.uplc"
+#import_uplc builtin_semantics_bls12_381_cardano_crypto_tests_G1_uncompress_out_of_group PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/G1/uncompress/out-of-group/out-of-group.uplc"
 
 /-- info: true -/
 #guard_msgs in

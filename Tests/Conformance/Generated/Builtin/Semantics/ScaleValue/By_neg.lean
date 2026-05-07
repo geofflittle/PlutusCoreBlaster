@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-neg/by-neg.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_scaleValue_by_neg PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-neg/by-neg.uplc"
+-- #import_uplc builtin_semantics_scaleValue_by_neg PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-neg/by-neg.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-neg/by-neg.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_scaleValue_by_neg_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-neg/by-neg.uplc.expected"
+-- #import_uplc builtin_semantics_scaleValue_by_neg_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/scaleValue/by-neg/by-neg.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/negative-input/negative-input.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_integerToByteString_little_endian_bounded_negative_input PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/negative-input/negative-input.uplc"
+#import_uplc builtin_semantics_integerToByteString_little_endian_bounded_negative_input PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/negative-input/negative-input.uplc"
 
 /-- info: true -/
 #guard_msgs in

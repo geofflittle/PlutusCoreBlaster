@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_hashToGroup/hash-dst-len-256/hash-dst-len-256.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G1_hashToGroup_hash_dst_len_256 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_hashToGroup/hash-dst-len-256/hash-dst-len-256.uplc"
+#import_uplc builtin_semantics_bls12_381_G1_hashToGroup_hash_dst_len_256 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_hashToGroup/hash-dst-len-256/hash-dst-len-256.uplc"
 
 /-- info: true -/
 #guard_msgs in

@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/bls12-381/G2/on-curve-bit3-clear/on-curve-bit3-clear.uplc' -/
 #guard_msgs in
-#import_uplc builtin_constant_bls12_381_G2_on_curve_bit3_clear PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/bls12-381/G2/on-curve-bit3-clear/on-curve-bit3-clear.uplc"
+#import_uplc builtin_constant_bls12_381_G2_on_curve_bit3_clear PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/bls12-381/G2/on-curve-bit3-clear/on-curve-bit3-clear.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/bls12-381/G2/on-curve-bit3-clear/on-curve-bit3-clear.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_constant_bls12_381_G2_on_curve_bit3_clear_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/bls12-381/G2/on-curve-bit3-clear/on-curve-bit3-clear.uplc.expected"
+#import_uplc builtin_constant_bls12_381_G2_on_curve_bit3_clear_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/constant/bls12-381/G2/on-curve-bit3-clear/on-curve-bit3-clear.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

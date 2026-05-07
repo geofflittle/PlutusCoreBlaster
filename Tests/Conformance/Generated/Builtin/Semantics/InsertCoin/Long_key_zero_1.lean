@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/long-key-zero-1/long-key-zero-1.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_insertCoin_long_key_zero_1 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/long-key-zero-1/long-key-zero-1.uplc"
+-- #import_uplc builtin_semantics_insertCoin_long_key_zero_1 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/long-key-zero-1/long-key-zero-1.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/long-key-zero-1/long-key-zero-1.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_insertCoin_long_key_zero_1_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/long-key-zero-1/long-key-zero-1.uplc.expected"
+-- #import_uplc builtin_semantics_insertCoin_long_key_zero_1_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/long-key-zero-1/long-key-zero-1.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

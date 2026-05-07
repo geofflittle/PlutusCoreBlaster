@@ -8,7 +8,7 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/non-integer-quantity/non-integer-quantity.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_unValueData_non_integer_quantity PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/non-integer-quantity/non-integer-quantity.uplc"
+-- #import_uplc builtin_semantics_unValueData_non_integer_quantity PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/non-integer-quantity/non-integer-quantity.uplc"
 
 -- /-- info: true -/
 -- #guard_msgs in

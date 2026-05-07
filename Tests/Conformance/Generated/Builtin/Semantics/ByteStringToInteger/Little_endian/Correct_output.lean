@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/correct-output/correct-output.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_byteStringToInteger_little_endian_correct_output PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/correct-output/correct-output.uplc"
+#import_uplc builtin_semantics_byteStringToInteger_little_endian_correct_output PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/correct-output/correct-output.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/correct-output/correct-output.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_byteStringToInteger_little_endian_correct_output_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/correct-output/correct-output.uplc.expected"
+#import_uplc builtin_semantics_byteStringToInteger_little_endian_correct_output_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/correct-output/correct-output.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

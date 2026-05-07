@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger-uncurried/addInteger-uncurried.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_addInteger_addInteger_uncurried PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger-uncurried/addInteger-uncurried.uplc"
+#import_uplc builtin_semantics_addInteger_addInteger_uncurried PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger-uncurried/addInteger-uncurried.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger-uncurried/addInteger-uncurried.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_addInteger_addInteger_uncurried_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger-uncurried/addInteger-uncurried.uplc.expected"
+#import_uplc builtin_semantics_addInteger_addInteger_uncurried_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger-uncurried/addInteger-uncurried.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

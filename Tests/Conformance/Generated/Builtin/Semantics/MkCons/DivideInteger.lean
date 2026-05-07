@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/mkCons/divideInteger/divideInteger.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_mkCons_divideInteger PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/mkCons/divideInteger/divideInteger.uplc"
+#import_uplc builtin_semantics_mkCons_divideInteger PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/mkCons/divideInteger/divideInteger.uplc"
 
 /-- info: true -/
 #guard_msgs in

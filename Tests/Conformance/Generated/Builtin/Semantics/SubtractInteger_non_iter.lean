@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/subtractInteger-non-iter/subtractInteger-non-iter.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_subtractInteger_non_iter PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/subtractInteger-non-iter/subtractInteger-non-iter.uplc"
+#import_uplc builtin_semantics_subtractInteger_non_iter PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/subtractInteger-non-iter/subtractInteger-non-iter.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/subtractInteger-non-iter/subtractInteger-non-iter.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_subtractInteger_non_iter_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/subtractInteger-non-iter/subtractInteger-non-iter.uplc.expected"
+#import_uplc builtin_semantics_subtractInteger_non_iter_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/subtractInteger-non-iter/subtractInteger-non-iter.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

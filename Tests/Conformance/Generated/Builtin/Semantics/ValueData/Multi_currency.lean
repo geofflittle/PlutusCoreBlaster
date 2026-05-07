@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueData/multi-currency/multi-currency.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_valueData_multi_currency PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueData/multi-currency/multi-currency.uplc"
+-- #import_uplc builtin_semantics_valueData_multi_currency PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueData/multi-currency/multi-currency.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueData/multi-currency/multi-currency.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_valueData_multi_currency_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueData/multi-currency/multi-currency.uplc.expected"
+-- #import_uplc builtin_semantics_valueData_multi_currency_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueData/multi-currency/multi-currency.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

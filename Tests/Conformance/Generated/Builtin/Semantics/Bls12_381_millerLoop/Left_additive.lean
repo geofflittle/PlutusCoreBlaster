@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_millerLoop/left-additive/left-additive.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_millerLoop_left_additive PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_millerLoop/left-additive/left-additive.uplc"
+#import_uplc builtin_semantics_bls12_381_millerLoop_left_additive PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_millerLoop/left-additive/left-additive.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_millerLoop/left-additive/left-additive.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_millerLoop_left_additive_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_millerLoop/left-additive/left-additive.uplc.expected"
+#import_uplc builtin_semantics_bls12_381_millerLoop_left_additive_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_millerLoop/left-additive/left-additive.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

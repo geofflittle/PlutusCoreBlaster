@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/equalsInteger/equalsInteger-03/equalsInteger-03.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_equalsInteger_equalsInteger_03 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/equalsInteger/equalsInteger-03/equalsInteger-03.uplc"
+#import_uplc builtin_semantics_equalsInteger_equalsInteger_03 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/equalsInteger/equalsInteger-03/equalsInteger-03.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/equalsInteger/equalsInteger-03/equalsInteger-03.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_equalsInteger_equalsInteger_03_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/equalsInteger/equalsInteger-03/equalsInteger-03.uplc.expected"
+#import_uplc builtin_semantics_equalsInteger_equalsInteger_03_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/equalsInteger/equalsInteger-03/equalsInteger-03.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

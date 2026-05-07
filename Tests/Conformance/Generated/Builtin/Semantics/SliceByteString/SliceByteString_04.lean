@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sliceByteString/sliceByteString-04/sliceByteString-04.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_sliceByteString_sliceByteString_04 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sliceByteString/sliceByteString-04/sliceByteString-04.uplc"
+#import_uplc builtin_semantics_sliceByteString_sliceByteString_04 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sliceByteString/sliceByteString-04/sliceByteString-04.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sliceByteString/sliceByteString-04/sliceByteString-04.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_sliceByteString_sliceByteString_04_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sliceByteString/sliceByteString-04/sliceByteString-04.uplc.expected"
+#import_uplc builtin_semantics_sliceByteString_sliceByteString_04_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/sliceByteString/sliceByteString-04/sliceByteString-04.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unBData/unBData-fail/unBData-fail.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_unBData_unBData_fail PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unBData/unBData-fail/unBData-fail.uplc"
+#import_uplc builtin_semantics_unBData_unBData_fail PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unBData/unBData-fail/unBData-fail.uplc"
 
 /-- info: true -/
 #guard_msgs in

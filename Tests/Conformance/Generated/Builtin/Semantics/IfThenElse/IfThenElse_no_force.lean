@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/ifThenElse/ifThenElse-no-force/ifThenElse-no-force.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_ifThenElse_ifThenElse_no_force PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/ifThenElse/ifThenElse-no-force/ifThenElse-no-force.uplc"
+#import_uplc builtin_semantics_ifThenElse_ifThenElse_no_force PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/ifThenElse/ifThenElse-no-force/ifThenElse-no-force.uplc"
 
 /-- info: true -/
 #guard_msgs in

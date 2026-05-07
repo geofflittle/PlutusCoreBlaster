@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/ccy-missing/ccy-missing.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_valueContains_ccy_missing PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/ccy-missing/ccy-missing.uplc"
+-- #import_uplc builtin_semantics_valueContains_ccy_missing PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/ccy-missing/ccy-missing.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/ccy-missing/ccy-missing.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_valueContains_ccy_missing_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/ccy-missing/ccy-missing.uplc.expected"
+-- #import_uplc builtin_semantics_valueContains_ccy_missing_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/ccy-missing/ccy-missing.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

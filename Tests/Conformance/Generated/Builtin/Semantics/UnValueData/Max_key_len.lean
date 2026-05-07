@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/max-key-len/max-key-len.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_unValueData_max_key_len PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/max-key-len/max-key-len.uplc"
+-- #import_uplc builtin_semantics_unValueData_max_key_len PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/max-key-len/max-key-len.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/max-key-len/max-key-len.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_unValueData_max_key_len_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/max-key-len/max-key-len.uplc.expected"
+-- #import_uplc builtin_semantics_unValueData_max_key_len_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/max-key-len/max-key-len.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

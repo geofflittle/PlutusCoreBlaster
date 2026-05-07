@@ -8,7 +8,7 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-empty/neg-empty.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_valueContains_neg_empty PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-empty/neg-empty.uplc"
+-- #import_uplc builtin_semantics_valueContains_neg_empty PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/neg-empty/neg-empty.uplc"
 
 -- /-- info: true -/
 -- #guard_msgs in

@@ -136,11 +136,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '{p1}' -/
 #guard_msgs in
-#import_uplc {id} PlutusV2 textual \"{p1}\"
+#import_uplc {id} PlutusV3 textual \"{p1}\"
 
 /-- info: Successfully decoded textual '{p2}' -/
 #guard_msgs in
-#import_uplc {id}_expected PlutusV2 textual \"{p2}\"
+#import_uplc {id}_expected PlutusV3 textual \"{p2}\"
 
 /-- info: true -/
 #guard_msgs in
@@ -170,7 +170,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '{p1}' -/
 #guard_msgs in
-#import_uplc {id} PlutusV2 textual \"{p1}\"
+#import_uplc {id} PlutusV3 textual \"{p1}\"
 
 /-- info: true -/
 #guard_msgs in

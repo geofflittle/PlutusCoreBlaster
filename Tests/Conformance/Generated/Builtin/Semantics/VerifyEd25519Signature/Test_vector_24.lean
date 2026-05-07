@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEd25519Signature/test-vector-24/test-vector-24.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_verifyEd25519Signature_test_vector_24 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEd25519Signature/test-vector-24/test-vector-24.uplc"
+#import_uplc builtin_semantics_verifyEd25519Signature_test_vector_24 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEd25519Signature/test-vector-24/test-vector-24.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEd25519Signature/test-vector-24/test-vector-24.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_verifyEd25519Signature_test_vector_24_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEd25519Signature/test-vector-24/test-vector-24.uplc.expected"
+#import_uplc builtin_semantics_verifyEd25519Signature_test_vector_24_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEd25519Signature/test-vector-24/test-vector-24.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/nonFunctionalApplication/nonFunctionalApplication.uplc' -/
 #guard_msgs in
-#import_uplc term_nonFunctionalApplication PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/nonFunctionalApplication/nonFunctionalApplication.uplc"
+#import_uplc term_nonFunctionalApplication PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/term/nonFunctionalApplication/nonFunctionalApplication.uplc"
 
 /-- info: true -/
 #guard_msgs in

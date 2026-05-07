@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/readBit/case-22/case-22.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_readBit_case_22 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/readBit/case-22/case-22.uplc"
+#import_uplc builtin_semantics_readBit_case_22 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/readBit/case-22/case-22.uplc"
 
 /-- info: true -/
 #guard_msgs in

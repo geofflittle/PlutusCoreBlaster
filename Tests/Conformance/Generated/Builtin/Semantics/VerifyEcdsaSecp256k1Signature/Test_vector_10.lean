@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEcdsaSecp256k1Signature/test-vector-10/test-vector-10.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_verifyEcdsaSecp256k1Signature_test_vector_10 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEcdsaSecp256k1Signature/test-vector-10/test-vector-10.uplc"
+#import_uplc builtin_semantics_verifyEcdsaSecp256k1Signature_test_vector_10 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEcdsaSecp256k1Signature/test-vector-10/test-vector-10.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEcdsaSecp256k1Signature/test-vector-10/test-vector-10.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_verifyEcdsaSecp256k1Signature_test_vector_10_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEcdsaSecp256k1Signature/test-vector-10/test-vector-10.uplc.expected"
+#import_uplc builtin_semantics_verifyEcdsaSecp256k1Signature_test_vector_10_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEcdsaSecp256k1Signature/test-vector-10/test-vector-10.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/negative-width/negative-width.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_integerToByteString_big_endian_bounded_negative_width PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/negative-width/negative-width.uplc"
+#import_uplc builtin_semantics_integerToByteString_big_endian_bounded_negative_width PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/negative-width/negative-width.uplc"
 
 /-- info: true -/
 #guard_msgs in

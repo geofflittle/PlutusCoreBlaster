@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_uncompress/too-long/too-long.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G1_uncompress_too_long PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_uncompress/too-long/too-long.uplc"
+#import_uplc builtin_semantics_bls12_381_G1_uncompress_too_long PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_uncompress/too-long/too-long.uplc"
 
 /-- info: true -/
 #guard_msgs in

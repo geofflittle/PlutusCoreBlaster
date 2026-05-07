@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_uncompress/zero/zero.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G2_uncompress_zero PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_uncompress/zero/zero.uplc"
+#import_uplc builtin_semantics_bls12_381_G2_uncompress_zero PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_uncompress/zero/zero.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_uncompress/zero/zero.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G2_uncompress_zero_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_uncompress/zero/zero.uplc.expected"
+#import_uplc builtin_semantics_bls12_381_G2_uncompress_zero_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_uncompress/zero/zero.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

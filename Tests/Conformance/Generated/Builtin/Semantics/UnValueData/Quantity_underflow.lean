@@ -8,7 +8,7 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/quantity-underflow/quantity-underflow.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_unValueData_quantity_underflow PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/quantity-underflow/quantity-underflow.uplc"
+-- #import_uplc builtin_semantics_unValueData_quantity_underflow PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/quantity-underflow/quantity-underflow.uplc"
 
 -- /-- info: true -/
 -- #guard_msgs in

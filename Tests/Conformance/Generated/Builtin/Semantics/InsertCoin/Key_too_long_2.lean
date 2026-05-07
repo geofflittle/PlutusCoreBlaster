@@ -8,7 +8,7 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/key-too-long-2/key-too-long-2.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_insertCoin_key_too_long_2 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/key-too-long-2/key-too-long-2.uplc"
+-- #import_uplc builtin_semantics_insertCoin_key_too_long_2 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/key-too-long-2/key-too-long-2.uplc"
 
 -- /-- info: true -/
 -- #guard_msgs in

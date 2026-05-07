@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_millerLoop/equal-pairing/equal-pairing.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_millerLoop_equal_pairing PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_millerLoop/equal-pairing/equal-pairing.uplc"
+#import_uplc builtin_semantics_bls12_381_millerLoop_equal_pairing PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_millerLoop/equal-pairing/equal-pairing.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_millerLoop/equal-pairing/equal-pairing.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_millerLoop_equal_pairing_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_millerLoop/equal-pairing/equal-pairing.uplc.expected"
+#import_uplc builtin_semantics_bls12_381_millerLoop_equal_pairing_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_millerLoop/equal-pairing/equal-pairing.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/tailList/tailList-partial/tailList-partial.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_tailList_tailList_partial PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/tailList/tailList-partial/tailList-partial.uplc"
+#import_uplc builtin_semantics_tailList_tailList_partial PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/tailList/tailList-partial/tailList-partial.uplc"
 
 /-- info: true -/
 #guard_msgs in

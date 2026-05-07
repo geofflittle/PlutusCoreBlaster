@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_scalarMul/mul4x-11/mul4x-11.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G2_scalarMul_mul4x_11 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_scalarMul/mul4x-11/mul4x-11.uplc"
+#import_uplc builtin_semantics_bls12_381_G2_scalarMul_mul4x_11 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_scalarMul/mul4x-11/mul4x-11.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_scalarMul/mul4x-11/mul4x-11.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G2_scalarMul_mul4x_11_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_scalarMul/mul4x-11/mul4x-11.uplc.expected"
+#import_uplc builtin_semantics_bls12_381_G2_scalarMul_mul4x_11_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_scalarMul/mul4x-11/mul4x-11.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

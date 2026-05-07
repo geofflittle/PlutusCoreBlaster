@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/multi-insufficient/multi-insufficient.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_valueContains_multi_insufficient PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/multi-insufficient/multi-insufficient.uplc"
+-- #import_uplc builtin_semantics_valueContains_multi_insufficient PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/multi-insufficient/multi-insufficient.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/multi-insufficient/multi-insufficient.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_valueContains_multi_insufficient_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/multi-insufficient/multi-insufficient.uplc.expected"
+-- #import_uplc builtin_semantics_valueContains_multi_insufficient_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/multi-insufficient/multi-insufficient.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

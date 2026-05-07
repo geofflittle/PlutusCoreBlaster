@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEcdsaSecp256k1Signature/short-msg/short-msg.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_verifyEcdsaSecp256k1Signature_short_msg PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEcdsaSecp256k1Signature/short-msg/short-msg.uplc"
+#import_uplc builtin_semantics_verifyEcdsaSecp256k1Signature_short_msg PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEcdsaSecp256k1Signature/short-msg/short-msg.uplc"
 
 /-- info: true -/
 #guard_msgs in

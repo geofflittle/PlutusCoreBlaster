@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueData/multi-token/multi-token.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_valueData_multi_token PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueData/multi-token/multi-token.uplc"
+-- #import_uplc builtin_semantics_valueData_multi_token PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueData/multi-token/multi-token.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueData/multi-token/multi-token.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_valueData_multi_token_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueData/multi-token/multi-token.uplc.expected"
+-- #import_uplc builtin_semantics_valueData_multi_token_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueData/multi-token/multi-token.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/roundtrip-from-data/roundtrip-from-data.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_unValueData_roundtrip_from_data PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/roundtrip-from-data/roundtrip-from-data.uplc"
+-- #import_uplc builtin_semantics_unValueData_roundtrip_from_data PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/roundtrip-from-data/roundtrip-from-data.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/roundtrip-from-data/roundtrip-from-data.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_unValueData_roundtrip_from_data_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/roundtrip-from-data/roundtrip-from-data.uplc.expected"
+-- #import_uplc builtin_semantics_unValueData_roundtrip_from_data_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/roundtrip-from-data/roundtrip-from-data.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

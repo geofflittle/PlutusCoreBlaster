@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/ScottListSum/ScottListSum.uplc' -/
 #guard_msgs in
-#import_uplc example_ScottListSum PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/ScottListSum/ScottListSum.uplc"
+#import_uplc example_ScottListSum PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/ScottListSum/ScottListSum.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/ScottListSum/ScottListSum.uplc.expected' -/
 #guard_msgs in
-#import_uplc example_ScottListSum_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/ScottListSum/ScottListSum.uplc.expected"
+#import_uplc example_ScottListSum_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/ScottListSum/ScottListSum.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

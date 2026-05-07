@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_equal/equal-true/equal-true.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G1_equal_equal_true PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_equal/equal-true/equal-true.uplc"
+#import_uplc builtin_semantics_bls12_381_G1_equal_equal_true PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_equal/equal-true/equal-true.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_equal/equal-true/equal-true.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G1_equal_equal_true_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_equal/equal-true/equal-true.uplc.expected"
+#import_uplc builtin_semantics_bls12_381_G1_equal_equal_true_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_equal/equal-true/equal-true.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

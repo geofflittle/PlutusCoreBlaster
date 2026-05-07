@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/reflexive/reflexive.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_valueContains_reflexive PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/reflexive/reflexive.uplc"
+-- #import_uplc builtin_semantics_valueContains_reflexive PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/reflexive/reflexive.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/reflexive/reflexive.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_valueContains_reflexive_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/reflexive/reflexive.uplc.expected"
+-- #import_uplc builtin_semantics_valueContains_reflexive_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/valueContains/reflexive/reflexive.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

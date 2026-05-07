@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEd25519Signature/long-key/long-key.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_verifyEd25519Signature_long_key PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEd25519Signature/long-key/long-key.uplc"
+#import_uplc builtin_semantics_verifyEd25519Signature_long_key PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/verifyEd25519Signature/long-key/long-key.uplc"
 
 /-- info: true -/
 #guard_msgs in

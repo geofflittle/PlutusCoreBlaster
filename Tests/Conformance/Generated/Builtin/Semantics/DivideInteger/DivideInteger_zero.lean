@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/divideInteger/divideInteger-zero/divideInteger-zero.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_divideInteger_divideInteger_zero PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/divideInteger/divideInteger-zero/divideInteger-zero.uplc"
+#import_uplc builtin_semantics_divideInteger_divideInteger_zero PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/divideInteger/divideInteger-zero/divideInteger-zero.uplc"
 
 /-- info: true -/
 #guard_msgs in

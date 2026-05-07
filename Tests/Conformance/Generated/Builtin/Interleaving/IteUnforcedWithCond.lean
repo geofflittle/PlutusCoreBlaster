@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/iteUnforcedWithCond/iteUnforcedWithCond.uplc' -/
 #guard_msgs in
-#import_uplc builtin_interleaving_iteUnforcedWithCond PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/iteUnforcedWithCond/iteUnforcedWithCond.uplc"
+#import_uplc builtin_interleaving_iteUnforcedWithCond PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/interleaving/iteUnforcedWithCond/iteUnforcedWithCond.uplc"
 
 /-- info: true -/
 #guard_msgs in

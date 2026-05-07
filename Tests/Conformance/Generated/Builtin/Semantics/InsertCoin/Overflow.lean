@@ -8,7 +8,7 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/overflow/overflow.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_insertCoin_overflow PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/overflow/overflow.uplc"
+-- #import_uplc builtin_semantics_insertCoin_overflow PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/overflow/overflow.uplc"
 
 -- /-- info: true -/
 -- #guard_msgs in

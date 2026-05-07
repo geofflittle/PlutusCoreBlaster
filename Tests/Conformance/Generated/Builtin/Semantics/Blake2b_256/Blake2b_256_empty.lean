@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/blake2b_256/blake2b_256-empty/blake2b_256-empty.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_blake2b_256_blake2b_256_empty PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/blake2b_256/blake2b_256-empty/blake2b_256-empty.uplc"
+#import_uplc builtin_semantics_blake2b_256_blake2b_256_empty PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/blake2b_256/blake2b_256-empty/blake2b_256-empty.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/blake2b_256/blake2b_256-empty/blake2b_256-empty.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_blake2b_256_blake2b_256_empty_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/blake2b_256/blake2b_256-empty/blake2b_256-empty.uplc.expected"
+#import_uplc builtin_semantics_blake2b_256_blake2b_256_empty_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/blake2b_256/blake2b_256-empty/blake2b_256-empty.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-12/dropList-12.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_dropList_dropList_12 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-12/dropList-12.uplc"
+#import_uplc builtin_semantics_dropList_dropList_12 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-12/dropList-12.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-12/dropList-12.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_dropList_dropList_12_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-12/dropList-12.uplc.expected"
+#import_uplc builtin_semantics_dropList_dropList_12_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/dropList/dropList-12/dropList-12.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

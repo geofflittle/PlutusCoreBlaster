@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/DivideByZeroDrop/DivideByZeroDrop.uplc' -/
 #guard_msgs in
-#import_uplc example_DivideByZeroDrop PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/DivideByZeroDrop/DivideByZeroDrop.uplc"
+#import_uplc example_DivideByZeroDrop PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/DivideByZeroDrop/DivideByZeroDrop.uplc"
 
 /-- info: true -/
 #guard_msgs in

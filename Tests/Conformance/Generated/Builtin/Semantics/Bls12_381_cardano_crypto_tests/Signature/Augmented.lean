@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/signature/augmented/augmented.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_cardano_crypto_tests_signature_augmented PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/signature/augmented/augmented.uplc"
+#import_uplc builtin_semantics_bls12_381_cardano_crypto_tests_signature_augmented PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/signature/augmented/augmented.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/signature/augmented/augmented.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_cardano_crypto_tests_signature_augmented_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/signature/augmented/augmented.uplc.expected"
+#import_uplc builtin_semantics_bls12_381_cardano_crypto_tests_signature_augmented_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/signature/augmented/augmented.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

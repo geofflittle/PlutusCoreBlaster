@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_uncompress/on-curve-serialised-not-compressed/on-curve-serialised-not-compressed.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G2_uncompress_on_curve_serialised_not_compressed PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_uncompress/on-curve-serialised-not-compressed/on-curve-serialised-not-compressed.uplc"
+#import_uplc builtin_semantics_bls12_381_G2_uncompress_on_curve_serialised_not_compressed PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G2_uncompress/on-curve-serialised-not-compressed/on-curve-serialised-not-compressed.uplc"
 
 /-- info: true -/
 #guard_msgs in

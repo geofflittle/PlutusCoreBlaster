@@ -64,7 +64,7 @@ mutual
   -- Alpha-equivalence for Terms.
   -- ctx is a stack of (name-in-t1, name-in-t2) pairs introduced by binders we've descended into.
   -- Free variables must match by name; bound variables match by position.
-  private partial def alphaEqWith (ctx : List (String × String)) : Term → Term → Bool
+  private def alphaEqWith (ctx : List (String × String)) : Term → Term → Bool
     | .Var x,         .Var y         =>
         match ctx.find? (fun p => p.1 == x) with
         | some (_, z) => z == y
@@ -80,51 +80,52 @@ mutual
     | .Error,         .Error         => true
     | _,              _              => false
 
-  private partial def alphaEqListWith (ctx : List (String × String)) : List Term → List Term → Bool
+  private def alphaEqListWith (ctx : List (String × String)) : List Term → List Term → Bool
     | [],      []      => true
     | t :: ts, u :: us => alphaEqWith ctx t u && alphaEqListWith ctx ts us
     | _,       _       => false
-
-  -- Convert a CekValue back to a Term for substitution.
-  private partial def cekValueToTerm : CekValue → Term
-    | .VCon c            => .Const c
-    | .VLam x body env   => .Lam x (closeTermWithEnv env [x] body)
-    | .VDelay body env   => .Delay (closeTermWithEnv env [] body)
-    | .VConstr n args    => .Constr n (args.map cekValueToTerm)
-    | .VBuiltin f args _ => args.foldr (fun v acc => .Apply acc (cekValueToTerm v)) (.Builtin f)
-
-  -- Close a Term by substituting free variables (not in `bound`) from `env`.
-  private partial def closeTermWithEnv (env : Environment) (bound : List String) : Term → Term
-    | .Var x       =>
-        if bound.contains x then .Var x
-        else match envLookup env x with
-             | some v => cekValueToTerm v
-             | none   => .Var x
-    | .Lam x body  => .Lam x (closeTermWithEnv env (x :: bound) body)
-    | .Apply f a   => .Apply (closeTermWithEnv env bound f) (closeTermWithEnv env bound a)
-    | .Delay t     => .Delay (closeTermWithEnv env bound t)
-    | .Force t     => .Force (closeTermWithEnv env bound t)
-    | .Constr n ts => .Constr n (ts.map (closeTermWithEnv env bound))
-    | .Case s hs   => .Case (closeTermWithEnv env bound s) (hs.map (closeTermWithEnv env bound))
-    | t            => t
-
-  private partial def cekValueBeq : CekValue → CekValue → Bool
-    | .VCon c1,              .VCon c2              => c1 == c2
-    | .VConstr n1 args1,     .VConstr n2 args2     => n1 == n2 && cekValueListBeq args1 args2
-    | .VBuiltin f1 args1 _,  .VBuiltin f2 args2 _  => f1 == f2 && cekValueListBeq args1 args2
-    | .VLam x1 t1 env1,      .VLam x2 t2 env2      =>
-        alphaEqWith [(x1, x2)] (closeTermWithEnv env1 [x1] t1) (closeTermWithEnv env2 [x2] t2)
-    | .VDelay t1 env1,       .VDelay t2 env2       =>
-        alphaEqWith [] (closeTermWithEnv env1 [] t1) (closeTermWithEnv env2 [] t2)
-    | _,                     _                     => false
-
-  private partial def cekValueListBeq : List CekValue → List CekValue → Bool
-    | [],      []      => true
-    | x :: xs, y :: ys => cekValueBeq x y && cekValueListBeq xs ys
-    | _,       _       => false
 end
 
-instance : BEq CekValue := ⟨cekValueBeq⟩
+mutual
+  -- Convert a CekValue back to a Term for substitution.
+  private def cekValueToTerm : Nat → CekValue → Term
+    | p + 1, .VCon c            => .Const c
+    | p + 1, .VLam x body env   => .Lam x (closeTermWithEnv env [x] p body)
+    | p + 1, .VDelay body env   => .Delay (closeTermWithEnv env []  p body)
+    | p + 1, .VConstr n args    => .Constr n (args.map (cekValueToTerm p))
+    | p + 1, .VBuiltin f args _ => args.foldr (fun v acc => .Apply acc (cekValueToTerm p v)) (.Builtin f)
+    | 0    , _                  => .Error
+
+  -- Close a Term by substituting free variables (not in `bound`) from `env`.
+  private def closeTermWithEnv (env : Environment) (bound : List String) : Nat → Term → Term
+    | p + 1, .Var x =>
+        if bound.contains x then .Var x
+        else match envLookup env x with
+             | some v => cekValueToTerm p v
+             | none   => .Var x
+    | p + 1, .Lam x body  => .Lam x (closeTermWithEnv env (x :: bound) p body)
+    | p + 1, .Apply f a   => .Apply (closeTermWithEnv env bound p f) (closeTermWithEnv env bound p a)
+    | p + 1, .Delay t     => .Delay (closeTermWithEnv env bound p t)
+    | p + 1, .Force t     => .Force (closeTermWithEnv env bound p t)
+    | p + 1, .Constr n ts => .Constr n (ts.map (closeTermWithEnv env bound p))
+    | p + 1, .Case s hs   => .Case (closeTermWithEnv env bound p s) (hs.map (closeTermWithEnv env bound p))
+    | _    , t            => t
+
+  private def cekValueBeq : Nat → CekValue → CekValue → Bool
+    | _    , .VCon c1,              .VCon c2              => c1 == c2
+    | p + 1, .VConstr n1 args1,     .VConstr n2 args2     => n1 == n2 && cekValueListBeq p args1 args2
+    | p + 1, .VBuiltin f1 args1 _,  .VBuiltin f2 args2 _  => f1 == f2 && cekValueListBeq p args1 args2
+    | p + 1, .VLam x1 t1 env1,      .VLam x2 t2 env2      =>
+        alphaEqWith [(x1, x2)] (closeTermWithEnv env1 [x1] p t1) (closeTermWithEnv env2 [x2] p t2)
+    | p + 1, .VDelay t1 env1,       .VDelay t2 env2       =>
+        alphaEqWith [] (closeTermWithEnv env1 [] p t1) (closeTermWithEnv env2 [] p t2)
+    | _    , _              , _                           => false
+
+  private def cekValueListBeq : Nat → List CekValue → List CekValue → Bool
+    | p + 1, x :: xs, y :: ys => cekValueBeq p x y && cekValueListBeq p xs ys
+    | _    , [],      []      => true
+    | _    , _      , _       => false
+end
 
 /-- A large step budget used for conformance test value evaluation.
     Set high enough that no conformance test should exhaust it. -/
@@ -146,7 +147,7 @@ def conformanceMaxBudget : ExBudget :=
 def programsEvalEquiv (p1 p2 : PlutusScript) : Bool :=
   match cekExecuteProgram p1.script [] conformanceSteps,
         cekExecuteProgram p2.script [] conformanceSteps with
-  | State.Halt v1, State.Halt v2 => v1 == v2
+  | State.Halt v1, State.Halt v2 => cekValueBeq conformanceSteps v1 v2
   | State.Error,   State.Error   => true
   | _,             _             => false
 
@@ -163,7 +164,7 @@ def budgetMatches (p : PlutusScript) (expectedCpu expectedMem : Nat) : Bool :=
   | EvaluationResult.Success _ b =>
       -- Haskell uses Int64 saturation arithmetic: costs exceeding Int64.max
       -- saturate to Int64.max rather than overflowing. Apply the same cap here.
-      let actualCpu := min b.exBudgetCPU.unExCPU    int64Max
+      let actualCpu := min b.exBudgetCPU.unExCPU       int64Max
       let actualMem := min b.exBudgetMemory.unExMemory int64Max
       actualCpu == expectedCpu && actualMem == expectedMem
   | _ => false

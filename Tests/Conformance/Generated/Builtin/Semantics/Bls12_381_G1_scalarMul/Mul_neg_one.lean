@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_scalarMul/mul-neg-one/mul-neg-one.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G1_scalarMul_mul_neg_one PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_scalarMul/mul-neg-one/mul-neg-one.uplc"
+#import_uplc builtin_semantics_bls12_381_G1_scalarMul_mul_neg_one PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_scalarMul/mul-neg-one/mul-neg-one.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_scalarMul/mul-neg-one/mul-neg-one.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_G1_scalarMul_mul_neg_one_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_scalarMul/mul-neg-one/mul-neg-one.uplc.expected"
+#import_uplc builtin_semantics_bls12_381_G1_scalarMul_mul_neg_one_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381_G1_scalarMul/mul-neg-one/mul-neg-one.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

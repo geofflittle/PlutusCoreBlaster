@@ -8,7 +8,7 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/data-duplicate-tokens/data-duplicate-tokens.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_unValueData_data_duplicate_tokens PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/data-duplicate-tokens/data-duplicate-tokens.uplc"
+-- #import_uplc builtin_semantics_unValueData_data_duplicate_tokens PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/unValueData/data-duplicate-tokens/data-duplicate-tokens.uplc"
 
 -- /-- info: true -/
 -- #guard_msgs in

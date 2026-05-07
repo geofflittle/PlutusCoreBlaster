@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/writeBits/case-28/case-28.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_writeBits_case_28 PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/writeBits/case-28/case-28.uplc"
+#import_uplc builtin_semantics_writeBits_case_28 PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/writeBits/case-28/case-28.uplc"
 
 /-- info: true -/
 #guard_msgs in

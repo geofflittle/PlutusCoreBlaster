@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/equalsByteString/equalsByteString/equalsByteString.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_equalsByteString_equalsByteString PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/equalsByteString/equalsByteString/equalsByteString.uplc"
+#import_uplc builtin_semantics_equalsByteString_equalsByteString PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/equalsByteString/equalsByteString/equalsByteString.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/equalsByteString/equalsByteString/equalsByteString.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_equalsByteString_equalsByteString_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/equalsByteString/equalsByteString/equalsByteString.uplc.expected"
+#import_uplc builtin_semantics_equalsByteString_equalsByteString_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/equalsByteString/equalsByteString/equalsByteString.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

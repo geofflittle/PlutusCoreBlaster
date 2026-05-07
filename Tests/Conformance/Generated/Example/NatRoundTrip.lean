@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/NatRoundTrip/NatRoundTrip.uplc' -/
 #guard_msgs in
-#import_uplc example_NatRoundTrip PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/NatRoundTrip/NatRoundTrip.uplc"
+#import_uplc example_NatRoundTrip PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/NatRoundTrip/NatRoundTrip.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/NatRoundTrip/NatRoundTrip.uplc.expected' -/
 #guard_msgs in
-#import_uplc example_NatRoundTrip_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/NatRoundTrip/NatRoundTrip.uplc.expected"
+#import_uplc example_NatRoundTrip_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/NatRoundTrip/NatRoundTrip.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

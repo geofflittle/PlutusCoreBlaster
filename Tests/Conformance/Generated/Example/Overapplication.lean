@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/overapplication/overapplication.uplc' -/
 #guard_msgs in
-#import_uplc example_overapplication PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/overapplication/overapplication.uplc"
+#import_uplc example_overapplication PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/overapplication/overapplication.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/overapplication/overapplication.uplc.expected' -/
 #guard_msgs in
-#import_uplc example_overapplication_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/overapplication/overapplication.uplc.expected"
+#import_uplc example_overapplication_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/overapplication/overapplication.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

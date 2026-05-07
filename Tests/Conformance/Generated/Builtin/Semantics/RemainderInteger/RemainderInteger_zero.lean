@@ -8,7 +8,7 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/remainderInteger/remainderInteger-zero/remainderInteger-zero.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_remainderInteger_remainderInteger_zero PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/remainderInteger/remainderInteger-zero/remainderInteger-zero.uplc"
+#import_uplc builtin_semantics_remainderInteger_remainderInteger_zero PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/remainderInteger/remainderInteger-zero/remainderInteger-zero.uplc"
 
 /-- info: true -/
 #guard_msgs in

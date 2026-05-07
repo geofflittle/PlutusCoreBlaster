@@ -8,11 +8,11 @@ open Tests.Conformance
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/no-overflow/no-overflow.uplc' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_insertCoin_no_overflow PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/no-overflow/no-overflow.uplc"
+-- #import_uplc builtin_semantics_insertCoin_no_overflow PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/no-overflow/no-overflow.uplc"
 
 -- /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/no-overflow/no-overflow.uplc.expected' -/
 -- #guard_msgs in
--- #import_uplc builtin_semantics_insertCoin_no_overflow_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/no-overflow/no-overflow.uplc.expected"
+-- #import_uplc builtin_semantics_insertCoin_no_overflow_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/insertCoin/no-overflow/no-overflow.uplc.expected"
 
 -- /-- info: true -/
 -- #guard_msgs in

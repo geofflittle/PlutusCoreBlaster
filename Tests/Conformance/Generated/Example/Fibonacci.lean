@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/fibonacci/fibonacci.uplc' -/
 #guard_msgs in
-#import_uplc example_fibonacci PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/fibonacci/fibonacci.uplc"
+#import_uplc example_fibonacci PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/fibonacci/fibonacci.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/fibonacci/fibonacci.uplc.expected' -/
 #guard_msgs in
-#import_uplc example_fibonacci_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/fibonacci/fibonacci.uplc.expected"
+#import_uplc example_fibonacci_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/example/fibonacci/fibonacci.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

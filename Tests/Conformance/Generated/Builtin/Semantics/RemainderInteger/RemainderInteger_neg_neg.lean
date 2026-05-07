@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/remainderInteger/remainderInteger-neg-neg/remainderInteger-neg-neg.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_remainderInteger_remainderInteger_neg_neg PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/remainderInteger/remainderInteger-neg-neg/remainderInteger-neg-neg.uplc"
+#import_uplc builtin_semantics_remainderInteger_remainderInteger_neg_neg PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/remainderInteger/remainderInteger-neg-neg/remainderInteger-neg-neg.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/remainderInteger/remainderInteger-neg-neg/remainderInteger-neg-neg.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_remainderInteger_remainderInteger_neg_neg_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/remainderInteger/remainderInteger-neg-neg/remainderInteger-neg-neg.uplc.expected"
+#import_uplc builtin_semantics_remainderInteger_remainderInteger_neg_neg_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/remainderInteger/remainderInteger-neg-neg/remainderInteger-neg-neg.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/zero/zero.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_integerToByteString_little_endian_bounded_zero PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/zero/zero.uplc"
+#import_uplc builtin_semantics_integerToByteString_little_endian_bounded_zero PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/zero/zero.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/zero/zero.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_integerToByteString_little_endian_bounded_zero_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/zero/zero.uplc.expected"
+#import_uplc builtin_semantics_integerToByteString_little_endian_bounded_zero_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/zero/zero.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in

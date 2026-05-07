@@ -8,11 +8,11 @@ open Tests.Conformance
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/G1/arith/scalarMul/scalarMul.uplc' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_cardano_crypto_tests_G1_arith_scalarMul PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/G1/arith/scalarMul/scalarMul.uplc"
+#import_uplc builtin_semantics_bls12_381_cardano_crypto_tests_G1_arith_scalarMul PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/G1/arith/scalarMul/scalarMul.uplc"
 
 /-- info: Successfully decoded textual '.plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/G1/arith/scalarMul/scalarMul.uplc.expected' -/
 #guard_msgs in
-#import_uplc builtin_semantics_bls12_381_cardano_crypto_tests_G1_arith_scalarMul_expected PlutusV2 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/G1/arith/scalarMul/scalarMul.uplc.expected"
+#import_uplc builtin_semantics_bls12_381_cardano_crypto_tests_G1_arith_scalarMul_expected PlutusV3 textual ".plutus-conformance/plutus-conformance/test-cases/uplc/evaluation/builtin/semantics/bls12_381-cardano-crypto-tests/G1/arith/scalarMul/scalarMul.uplc.expected"
 
 /-- info: true -/
 #guard_msgs in
