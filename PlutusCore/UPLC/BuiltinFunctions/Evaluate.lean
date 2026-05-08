@@ -32,7 +32,7 @@ open PlutusCore.UPLC.BuiltinFunctions.Unit
 open PlutusCore.UPLC.BuiltinFunctions.Bitwise
 
 -- Evaluate a builtin function based on its type.
-def evaluateBuiltinFunction (semanticsVariant : BuiltinSemanticsVariant) (b : BuiltinFun) : List CekValue → Option CekValue :=
+def evaluateBuiltinFunction (semanticsVariant : BuiltinSemanticsVariant) (useCryptographFFI : Bool) (b : BuiltinFun) : List CekValue → Option CekValue :=
   match b with
   -- Batch 1
   -- Integer
