@@ -1,14 +1,13 @@
 import Lean
-import PlutusCore.UPLC.PlutusScript
-import PlutusCore.Cbor
 
+import PlutusCore.Cbor
 import PlutusCore.UPLC.FlatEncoding
+import PlutusCore.UPLC.PlutusScript
 import PlutusCore.UPLC.Term
 import PlutusCore.UPLC.TextEncoding
 
 namespace PlutusCore.UPLC.ScriptEncoding
 
-open FlatEncoding (decodeProgramFromByteString)
 open PlutusCore.Cbor (decodeLargeBytestring)
 open PlutusCore.UPLC.TextEncoding (programFromString)
 open PlutusScript
