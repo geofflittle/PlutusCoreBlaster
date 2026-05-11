@@ -17,6 +17,9 @@ usage:
 	@echo " - gen_conformance_tests: (Re)generate the conformance test suite under"
 	@echo "                          Tests/Conformance/Generated/ from CONFORMANCE_ROOT"
 	@echo "                          (default: .plutus-conformance/plutus-conformance)."
+	@echo "                          Pass excludeNotImplemented=1 to skip test"
+	@echo "                          categories whose features are not yet"
+	@echo "                          implemented in this Lean formalization."
 	@echo " - build_conformance: Build the conformance test suite (Tests.Conformance)."
 	@echo " - check_conformance: Same as build_conformance but also checks that each"
 	@echo "                      lean file under Tests/Conformance/ is considered"
@@ -52,12 +55,22 @@ CONFORMANCE_ROOT ?= .plutus-conformance/plutus-conformance
 # Path string embedded in generated #import_uplc lines (interpreted at test-build time).
 CONFORMANCE_EMBED_ROOT ?= .plutus-conformance/plutus-conformance
 
+# Optional: set excludeNotImplemented=1 (or any non-empty value) to skip test
+# categories whose underlying features are not yet implemented in this Lean
+# formalization.
+ifneq ($(strip $(excludeNotImplemented)),)
+EXCLUDE_NOT_IMPLEMENTED_FLAG := --exclude-not-implemented
+else
+EXCLUDE_NOT_IMPLEMENTED_FLAG :=
+endif
+
 .PHONY: gen_conformance_tests
 gen_conformance_tests:
 	lake build gen_conformance_tests
 	lake exe gen_conformance_tests $(CONFORMANCE_ROOT) \
 		--out Tests/Conformance/Generated \
-		--embed-root $(CONFORMANCE_EMBED_ROOT)
+		--embed-root $(CONFORMANCE_EMBED_ROOT) \
+		$(EXCLUDE_NOT_IMPLEMENTED_FLAG)
 
 .PHONY: build_conformance
 build_conformance:

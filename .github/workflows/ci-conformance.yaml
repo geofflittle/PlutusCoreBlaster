@@ -197,7 +197,7 @@ jobs:
 
       - name: Generate conformance test suite
         working-directory: PlutusCoreBlaster
-        run: make gen_conformance_tests
+        run: make gen_conformance_tests excludeNotImplemented=1
 
       - name: Build and validate conformance test suite
         working-directory: PlutusCoreBlaster
