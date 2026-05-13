@@ -35,43 +35,43 @@ open PlutusCore.ByteString
 -- Define integerToByteString: args reversed as [n, w, e]
 def integerToByteString (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.Integer n), CekValue.VCon (Const.Integer w), CekValue.VCon (Const.Bool e)] =>
-      tryCatchSome (PLC.integerToByteString e w n) (fun r => CekValue.VCon (Const.ByteString ⟨r⟩))
+  | [.VCon (.Integer n), .VCon (.Integer w), .VCon (.Bool e)] =>
+      tryCatchSome (PLC.integerToByteString e w n) (fun r => .VCon (.ByteString ⟨r⟩))
   | _ => none
 
 -- Define byteStringToInteger: args reversed as [bs, e]
 def byteStringToInteger (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.ByteString bs), CekValue.VCon (Const.Bool e)] =>
-      some (CekValue.VCon (Const.Integer (PLC.byteStringToInteger e bs.data)))
+  | [.VCon (.ByteString bs), .VCon (.Bool e)] =>
+      some (.VCon (.Integer (PLC.byteStringToInteger e bs.data)))
   | _ => none
 
 -- Define andByteString: args reversed as [op2, op1, e]
 def andByteString (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.ByteString op2), CekValue.VCon (Const.ByteString op1), CekValue.VCon (Const.Bool e)] =>
-      some (CekValue.VCon (Const.ByteString ⟨PLC.andByteString e op1.data op2.data⟩))
+  | [.VCon (.ByteString op2), .VCon (.ByteString op1), .VCon (.Bool e)] =>
+      some (.VCon (.ByteString ⟨PLC.andByteString e op1.data op2.data⟩))
   | _ => none
 
 -- Define orByteString: args reversed as [op2, op1, e]
 def orByteString (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.ByteString op2), CekValue.VCon (Const.ByteString op1), CekValue.VCon (Const.Bool e)] =>
-      some (CekValue.VCon (Const.ByteString ⟨PLC.orByteString e op1.data op2.data⟩))
+  | [.VCon (.ByteString op2), .VCon (.ByteString op1), .VCon (.Bool e)] =>
+      some (.VCon (.ByteString ⟨PLC.orByteString e op1.data op2.data⟩))
   | _ => none
 
 -- Define xorByteString: args reversed as [op2, op1, e]
 def xorByteString (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.ByteString op2), CekValue.VCon (Const.ByteString op1), CekValue.VCon (Const.Bool e)] =>
-      some (CekValue.VCon (Const.ByteString ⟨PLC.xorByteString e op1.data op2.data⟩))
+  | [.VCon (.ByteString op2), .VCon (.ByteString op1), .VCon (.Bool e)] =>
+      some (.VCon (.ByteString ⟨PLC.xorByteString e op1.data op2.data⟩))
   | _ => none
 
 -- Define complementByteString
 def complementByteString (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.ByteString bs)] =>
-      some (CekValue.VCon (Const.ByteString ⟨PLC.complementByteString bs.data⟩))
+  | [.VCon (.ByteString bs)] =>
+      some (.VCon (.ByteString ⟨PLC.complementByteString bs.data⟩))
   | _ => none
 
 -- Define shiftByteString: args reversed as [k, s]
@@ -95,38 +95,38 @@ def rotateByteString (Vs : List CekValue) : Option CekValue :=
 -- Define countSetBits
 def countSetBits (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.ByteString s)] =>
-      some (CekValue.VCon (Const.Integer (PLC.countSetBits s.data)))
+  | [.VCon (.ByteString s)] =>
+      some (.VCon (.Integer (PLC.countSetBits s.data)))
   | _ => none
 
 -- Define findFirstSetBit
 def findFirstSetBit (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.ByteString s)] =>
-      some (CekValue.VCon (Const.Integer (PLC.findFirstSetBit s.data)))
+  | [.VCon (.ByteString s)] =>
+      some (.VCon (.Integer (PLC.findFirstSetBit s.data)))
   | _ => none
 
 -- Define readBit: args reversed as [i, s]
 def readBit (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.Integer i), CekValue.VCon (Const.ByteString s)] =>
-      tryCatchSome (PLC.readBit s.data i) (CekValue.VCon ∘ Const.Bool)
+  | [.VCon (.Integer i), .VCon (.ByteString s)] =>
+      tryCatchSome (PLC.readBit s.data i) (.VCon ∘ .Bool)
   | _ => none
 
 -- Define writeBits: args reversed as [x, ixs, s]
 def writeBits (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.Bool x), CekValue.VCon (Const.ConstList ixs), CekValue.VCon (Const.ByteString s)] =>
-      match ixs.mapM (fun c => match c with | Const.Integer i => some i | _ => none) with
-      | some intList => tryCatchSome (PLC.writeBits s.data intList x) (fun r => CekValue.VCon (Const.ByteString ⟨r⟩))
+  | [.VCon (.Bool x), .VCon (.ConstList ixs), .VCon (.ByteString s)] =>
+      match ixs.mapM (fun c => match c with | .Integer i => some i | _ => none) with
+      | some intList => tryCatchSome (PLC.writeBits s.data intList x) (fun r => .VCon (.ByteString ⟨r⟩))
       | none => none
   | _ => none
 
 -- Define replicateByte: args reversed as [b, l]
 def replicateByte (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.Integer b), CekValue.VCon (Const.Integer l)] =>
-      tryCatchSome (PLC.replicateByte l b) (fun r => CekValue.VCon (Const.ByteString ⟨r⟩))
+  | [.VCon (.Integer b), .VCon (.Integer l)] =>
+      tryCatchSome (PLC.replicateByte l b) (fun r => .VCon (.ByteString ⟨r⟩))
   | _ => none
 
 end PlutusCore.UPLC.BuiltinFunctions.Bitwise
