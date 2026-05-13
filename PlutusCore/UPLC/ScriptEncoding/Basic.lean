@@ -13,7 +13,6 @@ open PlutusCore.Cbor (decodeLargeBytestring)
 open PlutusCore.UPLC.TextEncoding (programFromString)
 open PlutusScript
 open Term
-open TextEncoding (programFromString)
 
 namespace Internal
 
