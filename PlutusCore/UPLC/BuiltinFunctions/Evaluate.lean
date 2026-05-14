@@ -144,10 +144,9 @@ def evaluateBuiltinFunction (semanticsVariant : BuiltinSemanticsVariant) (b : Bu
   | .Ripemd_160                      => Crypto.ripemd_160
   -- Batch 6
   | .ExpModInteger                   => expModInteger
-  -- Batch 7 and remaining unimplemented builtins
+  | .DropList                        => fun _ => none
   | .LengthOfArray                   => lengthOfArray
   | .ListToArray                     => listToArray
   | .IndexArray                      => indexArray
-  | .DropList                        => fun _ => none
 
 end PlutusCore.UPLC.BuiltinFunctions.Evaluate
