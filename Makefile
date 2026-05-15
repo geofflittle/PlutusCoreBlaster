@@ -48,19 +48,28 @@ usage:
 	@echo "                       system package manager (see README)."
 # Cryptograph
 	@echo " - build_cryptograph:  Build Cryptograph library (Lean modules + native extern_libs)."
-	@echo " - clean_cryptograph:  Clean compiled lean files for Cryptograph."
 	@echo " - check_cryptograph:  Same as build_cryptograph but also checks that each lean file"
 	@echo "                       in Cryptograph is considered during compilation."
 # Plutus Core
 	@echo " - build_plutus_core:  Build PlutusCore formalization."
-	@echo " - clean_plutus_core:  Clean compiled lean files for PlutusCore formalization."
 	@echo " - check_plutus_core:  Same as build_plutus_core but also checks that each lean file"
 	@echo "                       in the PlutusCore formalization is considered during compilation."
 # Test suite
 	@echo " - build_tests:        Build Test suite."
-	@echo " - clean_tests:        Clean compiled lean files for the Test suite."
 	@echo " - check_tests:        Same as build_tests but also checks that each lean file"
 	@echo "                       in the Test suite is considered during compilation."
+# Conformance tests
+	@echo " - gen_conformance_tests: (Re)generate the conformance test suite under"
+	@echo "                          Tests/Conformance/Generated/ from CONFORMANCE_ROOT"
+	@echo "                          (default: .plutus-conformance/plutus-conformance)."
+	@echo "                          Pass excludeNotImplemented=1 to skip test"
+	@echo "                          categories whose features are not yet"
+	@echo "                          implemented in this Lean formalization."
+	@echo " - build_conformance:  Build the conformance test suite (Tests.Conformance)."
+	@echo " - check_conformance:  Same as build_conformance but also checks that each"
+	@echo "                       lean file under Tests/Conformance/ is considered"
+	@echo "                       during compilation. Requires .plutus-conformance"
+	@echo "                       symlink and a previously generated test suite."
 # Aggregates
 	@echo " - build_all:          Build PlutusCore, Cryptograph, and Tests."
 	@echo " - clean_all:          Clean everything."
@@ -84,12 +93,8 @@ build_cryptograph:
 	            leanPlutusHash leanPlutusEd25519 \
 	            leanPlutusSecp256k1 leanPlutusBls12_381'
 
-.PHONY: clean_cryptograph
-clean_cryptograph:
-	$(NIX_RUN) 'lake clean'
-
 .PHONY: check_cryptograph
-check_cryptograph: clean_cryptograph
+check_cryptograph: clean_all
 	$(NIX_RUN) './scripts/check_lean_project_compilation.sh Cryptograph TestVectors'
 
 # ------------------------------------------------------------------ #
@@ -100,12 +105,8 @@ check_cryptograph: clean_cryptograph
 build_plutus_core:
 	$(NIX_RUN) 'lake build PlutusCore && lake build Lemmas'
 
-.PHONY: clean_plutus_core
-clean_plutus_core:
-	$(NIX_RUN) 'lake clean'
-
 .PHONY: check_plutus_core
-check_plutus_core: clean_plutus_core
+check_plutus_core: clean_all
 	$(NIX_RUN) './scripts/check_lean_project_with_lemmas.sh PlutusCore /Tests\.lean$$'
 
 # ------------------------------------------------------------------ #
@@ -116,13 +117,13 @@ check_plutus_core: clean_plutus_core
 build_tests:
 	$(NIX_RUN) 'LEAN_NUM_THREADS=5 lake test'
 
-.PHONY: clean_tests
-clean_tests:
-	$(NIX_RUN) 'lake clean'
-
 .PHONY: check_tests
-check_tests: clean_tests
+check_tests: clean_all
 	$(NIX_RUN) 'LEAN_NUM_THREADS=5 ./scripts/check_lean_project_compilation.sh Tests Tests Tests/Conformance'
+
+# ------------------------------------------------------------------ #
+# Conformance tests                                                  #
+# ------------------------------------------------------------------ #
 
 # Path to the plutus-conformance directory containing test-cases/.
 CONFORMANCE_ROOT ?= .plutus-conformance/plutus-conformance
@@ -138,20 +139,25 @@ else
 EXCLUDE_NOT_IMPLEMENTED_FLAG :=
 endif
 
+# Run the generator via the Lean interpreter rather than building a native
+# `lean_exe`. The package's `moreLinkArgs` (-lsodium/-lsecp256k1/-lblst, for
+# Cryptograph.FFI) is applied to every `lean_exe` and pulls in the C extern_libs,
+# even though this generator has no FFI imports. Linking that exe inside the
+# nix-shell additionally fails because Lean's bundled clang --sysroot ships an
+# older glibc than nix-shell's libsodium.so. `lean --run` skips native linking.
 .PHONY: gen_conformance_tests
 gen_conformance_tests:
-	lake build gen_conformance_tests
-	lake exe gen_conformance_tests $(CONFORMANCE_ROOT) \
+	$(NIX_RUN) 'lake env lean --run scripts/GenConformanceTests.lean $(CONFORMANCE_ROOT) \
 		--out Tests/Conformance/Generated \
 		--embed-root $(CONFORMANCE_EMBED_ROOT) \
-		$(EXCLUDE_NOT_IMPLEMENTED_FLAG)
+		$(EXCLUDE_NOT_IMPLEMENTED_FLAG)'
 
 .PHONY: build_conformance
 build_conformance:
 	$(NIX_RUN) 'LEAN_NUM_THREADS=5 lake build Tests.Conformance'
 
 .PHONY: check_conformance
-check_conformance: clean_tests
+check_conformance: clean_all
 	$(NIX_RUN) 'LEAN_NUM_THREADS=5 ./scripts/check_lean_project_compilation.sh Tests.Conformance Tests/Conformance'
 
 # ------------------------------------------------------------------ #
@@ -160,10 +166,11 @@ check_conformance: clean_tests
 # ------------------------------------------------------------------ #
 
 .PHONY: build_all
-build_all: build_plutus_core build_cryptograph build_tests
+build_all: build_plutus_core build_cryptograph build_tests build_conformance
 
 .PHONY: clean_all
-clean_all: clean_plutus_core clean_cryptograph clean_tests
+clean_all:
+	$(NIX_RUN) 'lake clean'
 
 .PHONY: check_all
-check_all: check_plutus_core check_cryptograph check_tests
+check_all: check_plutus_core check_cryptograph check_tests check_conformance
