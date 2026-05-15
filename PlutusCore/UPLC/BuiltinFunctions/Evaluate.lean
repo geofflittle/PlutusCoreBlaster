@@ -144,7 +144,7 @@ def evaluateBuiltinFunction (semanticsVariant : BuiltinSemanticsVariant) (b : Bu
   | .Ripemd_160                      => Crypto.ripemd_160
   -- Batch 6
   | .ExpModInteger                   => expModInteger
-  | .DropList                        => fun _ => none
+  | .DropList                        => dropList
   | .LengthOfArray                   => lengthOfArray
   | .ListToArray                     => listToArray
   | .IndexArray                      => indexArray
