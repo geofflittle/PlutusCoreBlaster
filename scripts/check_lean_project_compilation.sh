@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 exec_found=0
-<<<<<<< HEAD
+
 if [[ $# -ge 1 ]]
 then
   LIB_NAME=$1
