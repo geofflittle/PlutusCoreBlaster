@@ -71,6 +71,9 @@ def defaultCekMachineCostsC : CekMachineCosts :=
     stepCostCase    := { exBudgetCPU := ⟨16000⟩ , exBudgetMemory := ⟨100⟩},
   }
 
+def defaultCekMachineCostsD : CekMachineCosts := defaultCekMachineCostsC
+def defaultCekMachineCostsE : CekMachineCosts := defaultCekMachineCostsC
+
 -- Helpers
 
 -- TODO: Either fix something so we can add the real implementation or decide if we're ok with that
@@ -111,7 +114,7 @@ def constSize (c : Const) : Nat :=
   match c with
   | Const.Integer i => integerSize i
   | Const.ByteString bs => byteStringSize bs
-  | Const.String s => s.length
+  | Const.String s => s.length / 4
   | Const.Unit => 0
   | Const.Bool _ => 1
   | Const.ConstList cs => cs.foldl (fun acc c => acc + constSize c) 0
@@ -906,10 +909,443 @@ def builtinCostsC (b : BuiltinFun) (args : List CekValue) : ExBudget :=
       | _ => 0
     ⟨⟨116711 + 1957 * x⟩, ⟨4⟩⟩
 
+-- BuiltinCostsD
+-- Based on builtinCostModelD.json (plutus 1.64.0.0 / Van Rossem era, PlutusV1/V2 post-Conway).
+-- Differences from B:
+--   equalsByteString: intercept 28755, slope 75, constant 30623
+--   divideInteger: above_and_below_diagonal (always formula with x=max(sizes), y=min(sizes))
+--   modInteger: above_and_below_diagonal (same), memory linear_in_y2 (= argSize args 0)
+--   remainderInteger: memory linear_in_y2 (= argSize args 0)
+def builtinCostsD (b : BuiltinFun) (args : List CekValue) : ExBudget :=
+  match b with
+  | BuiltinFun.AddInteger =>
+    ⟨⟨100788 + 420 * maxArgSize args⟩, ⟨1 + 1 * maxArgSize args⟩⟩
+  | BuiltinFun.AppendByteString =>
+    ⟨⟨1000 + 173 * addedArgSize args⟩, ⟨addedArgSize args⟩⟩
+  | BuiltinFun.AppendString =>
+    ⟨⟨1000 + 59957 * addedArgSize args⟩, ⟨4 + 1 * addedArgSize args⟩⟩
+  | BuiltinFun.BData =>
+    ⟨⟨11183⟩, ⟨32⟩⟩
+  | BuiltinFun.Blake2b_224 =>
+    ⟨⟨207616 + 8310 * argSize args 0⟩, ⟨4⟩⟩
+  | BuiltinFun.Blake2b_256 =>
+    ⟨⟨201305 + 8356 * argSize args 0⟩, ⟨4⟩⟩
+  | BuiltinFun.Bls12_381_G1_add =>
+    ⟨⟨962335⟩, ⟨18⟩⟩
+  | BuiltinFun.Bls12_381_G1_compress =>
+    ⟨⟨2780678⟩, ⟨6⟩⟩
+  | BuiltinFun.Bls12_381_G1_equal =>
+    ⟨⟨442008⟩, ⟨1⟩⟩
+  | BuiltinFun.Bls12_381_G1_hashToGroup =>
+    ⟨⟨52538055 + 3756 * argSize args 1⟩, ⟨18⟩⟩
+  | BuiltinFun.Bls12_381_G1_neg =>
+    ⟨⟨267929⟩, ⟨18⟩⟩
+  | BuiltinFun.Bls12_381_G1_scalarMul =>
+    ⟨⟨76433006 + 8868 * argSize args 1⟩, ⟨18⟩⟩
+  | BuiltinFun.Bls12_381_G1_uncompress =>
+    ⟨⟨52948122⟩, ⟨18⟩⟩
+  | BuiltinFun.Bls12_381_G2_add =>
+    ⟨⟨1995836⟩, ⟨36⟩⟩
+  | BuiltinFun.Bls12_381_G2_compress =>
+    ⟨⟨3227919⟩, ⟨12⟩⟩
+  | BuiltinFun.Bls12_381_G2_equal =>
+    ⟨⟨901022⟩, ⟨1⟩⟩
+  | BuiltinFun.Bls12_381_G2_hashToGroup =>
+    ⟨⟨166917843 + 4307 * argSize args 1⟩, ⟨36⟩⟩
+  | BuiltinFun.Bls12_381_G2_neg =>
+    ⟨⟨284546⟩, ⟨36⟩⟩
+  | BuiltinFun.Bls12_381_G2_scalarMul =>
+    ⟨⟨158221314 + 26549 * argSize args 1⟩, ⟨36⟩⟩
+  | BuiltinFun.Bls12_381_G2_uncompress =>
+    ⟨⟨74698472⟩, ⟨36⟩⟩
+  | BuiltinFun.Bls12_381_G1_multiScalarMul =>
+    ⟨⟨321837444 + 25087669 * argListLen args 1⟩, ⟨18⟩⟩
+  | BuiltinFun.Bls12_381_G2_multiScalarMul =>
+    ⟨⟨617887431 + 67302824 * argListLen args 1⟩, ⟨36⟩⟩
+  | BuiltinFun.Bls12_381_finalVerify =>
+    ⟨⟨333849714⟩, ⟨1⟩⟩
+  | BuiltinFun.Bls12_381_millerLoop =>
+    ⟨⟨254006273⟩, ⟨72⟩⟩
+  | BuiltinFun.Bls12_381_mulMlResult =>
+    ⟨⟨2174038⟩, ⟨72⟩⟩
+  | BuiltinFun.ByteStringToInteger =>
+    ⟨⟨1006041 + 43623 * argSize args 0 + 251 * (argSize args 0)^2⟩, ⟨argSize args 0⟩⟩
+  | BuiltinFun.ChooseData =>
+    ⟨⟨94375⟩, ⟨32⟩⟩
+  | BuiltinFun.ChooseList =>
+    ⟨⟨132994⟩, ⟨32⟩⟩
+  | BuiltinFun.ChooseUnit =>
+    ⟨⟨61462⟩, ⟨4⟩⟩
+  | BuiltinFun.ConsByteString =>
+    ⟨⟨72010 + 178 * argSize args 0⟩, ⟨addedArgSize args⟩⟩
+  | BuiltinFun.ConstrData =>
+    ⟨⟨22151⟩, ⟨32⟩⟩
+  | BuiltinFun.DecodeUtf8 =>
+    ⟨⟨91189 + 769 * argSize args 0⟩, ⟨4 + 2 * argSize args 0⟩⟩
+  | BuiltinFun.DivideInteger =>
+    -- above_and_below_diagonal: always formula = 228465 + 122*x*y where x=max(sizes), y=min(sizes).
+    -- Since the inner model is multiplied_sizes (symmetric), we can just use the product directly.
+    ⟨⟨228465 + 122 * argSize args 0 * argSize args 1⟩, ⟨max 1 (argSize args 1 - argSize args 0)⟩⟩
+  | BuiltinFun.EncodeUtf8 =>
+    ⟨⟨1000 + 42921 * argSize args 0⟩, ⟨4 + 2 * argSize args 0⟩⟩
+  | BuiltinFun.EqualsByteString =>
+    ⟨⟨if argSize args 0 == argSize args 1 then 28755 + 75 * argSize args 0 else 30623⟩, ⟨1⟩⟩
+  | BuiltinFun.EqualsData =>
+    ⟨⟨898148 + 27279 * minArgSize args⟩, ⟨1⟩⟩
+  | BuiltinFun.EqualsInteger =>
+    ⟨⟨51775 + 558 * minArgSize args⟩, ⟨1⟩⟩
+  | BuiltinFun.EqualsString =>
+    ⟨⟨if argSize args 0 == argSize args 1 then 1000 + 60594 * argSize args 0 else 39184⟩, ⟨1⟩⟩
+  | BuiltinFun.FstPair =>
+    ⟨⟨141895⟩, ⟨32⟩⟩
+  | BuiltinFun.HeadList =>
+    ⟨⟨83150⟩, ⟨32⟩⟩
+  | BuiltinFun.IData =>
+    ⟨⟨15299⟩, ⟨32⟩⟩
+  | BuiltinFun.IfThenElse =>
+    ⟨⟨76049⟩, ⟨1⟩⟩
+  | BuiltinFun.IndexByteString =>
+    ⟨⟨13169⟩, ⟨4⟩⟩
+  | BuiltinFun.IntegerToByteString =>
+    let memSize := match args[1]? with
+      | some (CekValue.VCon (Const.Integer n)) =>
+          if n > 0 then (n.toNat - 1) / 8 + 1 else argSize args 0
+      | _ => argSize args 0
+    ⟨⟨1293828 + 28716 * argSize args 0 + 63 * (argSize args 0)^2⟩, ⟨memSize⟩⟩
+  | BuiltinFun.Keccak_256 =>
+    ⟨⟨2261318 + 64571 * argSize args 0⟩, ⟨4⟩⟩
+  | BuiltinFun.LengthOfByteString =>
+    ⟨⟨22100⟩, ⟨10⟩⟩
+  | BuiltinFun.LessThanByteString =>
+    ⟨⟨28999 + 74 * minArgSize args⟩, ⟨1⟩⟩
+  | BuiltinFun.LessThanEqualsByteString =>
+    ⟨⟨28999 + 74 * minArgSize args⟩, ⟨1⟩⟩
+  | BuiltinFun.LessThanEqualsInteger =>
+    ⟨⟨43285 + 552 * minArgSize args⟩, ⟨1⟩⟩
+  | BuiltinFun.LessThanInteger =>
+    ⟨⟨44749 + 541 * minArgSize args⟩, ⟨1⟩⟩
+  | BuiltinFun.ListData =>
+    ⟨⟨33852⟩, ⟨32⟩⟩
+  | BuiltinFun.MapData =>
+    ⟨⟨68246⟩, ⟨32⟩⟩
+  | BuiltinFun.MkCons =>
+    ⟨⟨72362⟩, ⟨32⟩⟩
+  | BuiltinFun.MkNilData =>
+    ⟨⟨7243⟩, ⟨32⟩⟩
+  | BuiltinFun.MkNilPairData =>
+    ⟨⟨7391⟩, ⟨32⟩⟩
+  | BuiltinFun.MkPairData =>
+    ⟨⟨11546⟩, ⟨32⟩⟩
+  | BuiltinFun.ModInteger =>
+    -- above_and_below_diagonal: always formula = 228465 + 122*x*y where x=max(sizes), y=min(sizes).
+    -- Since the inner model is multiplied_sizes (symmetric), we can just use the product directly.
+    -- memory: linear_in_y2 = argSize args 0 (denom size).
+    ⟨⟨228465 + 122 * argSize args 0 * argSize args 1⟩, ⟨argSize args 0⟩⟩
+  | BuiltinFun.MultiplyInteger =>
+    ⟨⟨90434 + 519 * argSize args 0 * argSize args 1⟩, ⟨addedArgSize args⟩⟩
+  | BuiltinFun.NullList =>
+    ⟨⟨74433⟩, ⟨32⟩⟩
+  | BuiltinFun.QuotientInteger =>
+    ⟨⟨if argSize args 0 > argSize args 1 then 85848 else 228465 + 122 * argSize args 0 * argSize args 1⟩, ⟨max 1 (argSize args 1 - argSize args 0)⟩⟩
+  | BuiltinFun.RemainderInteger =>
+    -- memory: linear_in_y2 = argSize args 0 (denom size).
+    ⟨⟨if argSize args 0 > argSize args 1 then 85848 else 228465 + 122 * argSize args 0 * argSize args 1⟩, ⟨argSize args 0⟩⟩
+  | BuiltinFun.SerializeData =>
+    ⟨⟨955506 + 213312 * argSize args 0⟩, ⟨2 * argSize args 0⟩⟩
+  | BuiltinFun.Sha2_256 =>
+    ⟨⟨270652 + 22588 * argSize args 0⟩, ⟨4⟩⟩
+  | BuiltinFun.Sha3_256 =>
+    ⟨⟨1457325 + 64566 * argSize args 0⟩, ⟨4⟩⟩
+  | BuiltinFun.SliceByteString =>
+    ⟨⟨20467 + 1 * argSize args 0⟩, ⟨4⟩⟩
+  | BuiltinFun.SndPair =>
+    ⟨⟨141992⟩, ⟨32⟩⟩
+  | BuiltinFun.SubtractInteger =>
+    ⟨⟨100788 + 420 * maxArgSize args⟩, ⟨1 + 1 * maxArgSize args⟩⟩
+  | BuiltinFun.TailList =>
+    ⟨⟨81663⟩, ⟨32⟩⟩
+  | BuiltinFun.Trace =>
+    ⟨⟨59498⟩, ⟨32⟩⟩
+  | BuiltinFun.UnBData =>
+    ⟨⟨20142⟩, ⟨32⟩⟩
+  | BuiltinFun.UnConstrData =>
+    ⟨⟨24588⟩, ⟨32⟩⟩
+  | BuiltinFun.UnIData =>
+    ⟨⟨20744⟩, ⟨32⟩⟩
+  | BuiltinFun.UnListData =>
+    ⟨⟨25933⟩, ⟨32⟩⟩
+  | BuiltinFun.UnMapData =>
+    ⟨⟨24623⟩, ⟨32⟩⟩
+  | BuiltinFun.VerifyEcdsaSecp256k1Signature =>
+    ⟨⟨43053543⟩, ⟨10⟩⟩
+  | BuiltinFun.VerifyEd25519Signature =>
+    ⟨⟨53384111 + 14333 * argSize args 1⟩, ⟨10⟩⟩
+  | BuiltinFun.VerifySchnorrSecp256k1Signature =>
+    ⟨⟨43574283 + 26308 * argSize args 1⟩, ⟨10⟩⟩
+  | BuiltinFun.AndByteString =>
+    ⟨⟨100181 + 726 * argSize args 1 + 719 * argSize args 0⟩, ⟨max (argSize args 0) (argSize args 1)⟩⟩
+  | BuiltinFun.OrByteString =>
+    ⟨⟨100181 + 726 * argSize args 1 + 719 * argSize args 0⟩, ⟨max (argSize args 0) (argSize args 1)⟩⟩
+  | BuiltinFun.XorByteString =>
+    ⟨⟨100181 + 726 * argSize args 1 + 719 * argSize args 0⟩, ⟨max (argSize args 0) (argSize args 1)⟩⟩
+  | BuiltinFun.ComplementByteString =>
+    ⟨⟨107878 + 680 * argSize args 0⟩, ⟨argSize args 0⟩⟩
+  | BuiltinFun.ReadBit =>
+    ⟨⟨95336⟩, ⟨1⟩⟩
+  | BuiltinFun.WriteBits =>
+    ⟨⟨281145 + 18848 * argSize args 1⟩, ⟨argSize args 2⟩⟩
+  | BuiltinFun.ReplicateByte =>
+    let x := match (args[1]? : Option CekValue) with
+      | some (CekValue.VCon (Const.Integer n)) =>
+          if n ≤ 0 then 0 else (n.toNat - 1) / 8 + 1
+      | _ => 0
+    ⟨⟨180194 + 159 * x⟩, ⟨1 + 1 * x⟩⟩
+  | BuiltinFun.ShiftByteString =>
+    ⟨⟨158519 + 8942 * argSize args 1⟩, ⟨argSize args 1⟩⟩
+  | BuiltinFun.RotateByteString =>
+    ⟨⟨159378 + 8813 * argSize args 1⟩, ⟨argSize args 1⟩⟩
+  | BuiltinFun.CountSetBits =>
+    ⟨⟨107490 + 3298 * argSize args 0⟩, ⟨1⟩⟩
+  | BuiltinFun.FindFirstSetBit =>
+    ⟨⟨106057 + 655 * argSize args 0⟩, ⟨1⟩⟩
+  | BuiltinFun.Ripemd_160 =>
+    ⟨⟨1964219 + 24520 * argSize args 0⟩, ⟨3⟩⟩
+  | BuiltinFun.ExpModInteger =>
+    let mm := argSize args 0
+    let ee := argSize args 1
+    let aa := argSize args 2
+    let cost0 := 607153 + 231697 * ee * mm + 53144 * ee * mm^2
+    ⟨⟨if aa > mm then cost0 + cost0 / 2 else cost0⟩, ⟨mm⟩⟩
+  | BuiltinFun.DropList =>
+    let x := match (args[1]? : Option CekValue) with
+      | some (CekValue.VCon (Const.Integer n)) => n.natAbs
+      | _ => 0
+    ⟨⟨116711 + 1957 * x⟩, ⟨4⟩⟩
+
+-- BuiltinCostsE
+-- Based on builtinCostModelE.json (plutus 1.64.0.0 / Van Rossem era, PlutusV3 post-Conway).
+-- Differences from C:
+--   equalsByteString: intercept 28755, slope 75, constant 30623
+--   remainderInteger: c11 549 → 960
+--   quotientInteger: c11 549 → 960
+--   divideInteger: above_and_below_diagonal (always quadratic with x=max(sizes), y=min(sizes)), c11 549 → 960
+--   modInteger: above_and_below_diagonal (same), c11 549 → 960
+def builtinCostsE (b : BuiltinFun) (args : List CekValue) : ExBudget :=
+  match b with
+  | BuiltinFun.AddInteger =>
+    ⟨⟨100788 + 420 * maxArgSize args⟩, ⟨1 + 1 * maxArgSize args⟩⟩
+  | BuiltinFun.AppendByteString =>
+    ⟨⟨1000 + 173 * addedArgSize args⟩, ⟨addedArgSize args⟩⟩
+  | BuiltinFun.AppendString =>
+    ⟨⟨1000 + 59957 * addedArgSize args⟩, ⟨4 + 1 * addedArgSize args⟩⟩
+  | BuiltinFun.BData =>
+    ⟨⟨11183⟩, ⟨32⟩⟩
+  | BuiltinFun.Blake2b_224 =>
+    ⟨⟨207616 + 8310 * argSize args 0⟩, ⟨4⟩⟩
+  | BuiltinFun.Blake2b_256 =>
+    ⟨⟨201305 + 8356 * argSize args 0⟩, ⟨4⟩⟩
+  | BuiltinFun.Bls12_381_G1_add =>
+    ⟨⟨962335⟩, ⟨18⟩⟩
+  | BuiltinFun.Bls12_381_G1_compress =>
+    ⟨⟨2780678⟩, ⟨6⟩⟩
+  | BuiltinFun.Bls12_381_G1_equal =>
+    ⟨⟨442008⟩, ⟨1⟩⟩
+  | BuiltinFun.Bls12_381_G1_hashToGroup =>
+    ⟨⟨52538055 + 3756 * argSize args 1⟩, ⟨18⟩⟩
+  | BuiltinFun.Bls12_381_G1_neg =>
+    ⟨⟨267929⟩, ⟨18⟩⟩
+  | BuiltinFun.Bls12_381_G1_scalarMul =>
+    ⟨⟨76433006 + 8868 * argSize args 1⟩, ⟨18⟩⟩
+  | BuiltinFun.Bls12_381_G1_uncompress =>
+    ⟨⟨52948122⟩, ⟨18⟩⟩
+  | BuiltinFun.Bls12_381_G2_add =>
+    ⟨⟨1995836⟩, ⟨36⟩⟩
+  | BuiltinFun.Bls12_381_G2_compress =>
+    ⟨⟨3227919⟩, ⟨12⟩⟩
+  | BuiltinFun.Bls12_381_G2_equal =>
+    ⟨⟨901022⟩, ⟨1⟩⟩
+  | BuiltinFun.Bls12_381_G2_hashToGroup =>
+    ⟨⟨166917843 + 4307 * argSize args 1⟩, ⟨36⟩⟩
+  | BuiltinFun.Bls12_381_G2_neg =>
+    ⟨⟨284546⟩, ⟨36⟩⟩
+  | BuiltinFun.Bls12_381_G2_scalarMul =>
+    ⟨⟨158221314 + 26549 * argSize args 1⟩, ⟨36⟩⟩
+  | BuiltinFun.Bls12_381_G2_uncompress =>
+    ⟨⟨74698472⟩, ⟨36⟩⟩
+  | BuiltinFun.Bls12_381_G1_multiScalarMul =>
+    ⟨⟨321837444 + 25087669 * argListLen args 1⟩, ⟨18⟩⟩
+  | BuiltinFun.Bls12_381_G2_multiScalarMul =>
+    ⟨⟨617887431 + 67302824 * argListLen args 1⟩, ⟨36⟩⟩
+  | BuiltinFun.Bls12_381_finalVerify =>
+    ⟨⟨333849714⟩, ⟨1⟩⟩
+  | BuiltinFun.Bls12_381_millerLoop =>
+    ⟨⟨254006273⟩, ⟨72⟩⟩
+  | BuiltinFun.Bls12_381_mulMlResult =>
+    ⟨⟨2174038⟩, ⟨72⟩⟩
+  | BuiltinFun.ByteStringToInteger =>
+    ⟨⟨1006041 + 43623 * argSize args 0 + 251 * (argSize args 0)^2⟩, ⟨argSize args 0⟩⟩
+  | BuiltinFun.ChooseData =>
+    ⟨⟨94375⟩, ⟨32⟩⟩
+  | BuiltinFun.ChooseList =>
+    ⟨⟨132994⟩, ⟨32⟩⟩
+  | BuiltinFun.ChooseUnit =>
+    ⟨⟨61462⟩, ⟨4⟩⟩
+  | BuiltinFun.ConsByteString =>
+    ⟨⟨72010 + 178 * argSize args 0⟩, ⟨addedArgSize args⟩⟩
+  | BuiltinFun.ConstrData =>
+    ⟨⟨22151⟩, ⟨32⟩⟩
+  | BuiltinFun.DecodeUtf8 =>
+    ⟨⟨91189 + 769 * argSize args 0⟩, ⟨4 + 2 * argSize args 0⟩⟩
+  | BuiltinFun.DivideInteger =>
+    -- above_and_below_diagonal: always quadratic formula with x=max(sizes), y=min(sizes).
+    -- CEK args are reversed: args[0]=denom=size2, args[1]=num=size1.
+    let xE := max (argSize args 1) (argSize args 0)
+    let yE := min (argSize args 1) (argSize args 0)
+    ⟨⟨Int.toNat (max 85848 (123203 + 1716 * ↑xE + 7305 * ↑yE + 57 * ↑xE^2 + 960 * ↑xE * ↑yE - 900 * ↑yE^2))⟩, ⟨max 1 (argSize args 1 - argSize args 0)⟩⟩
+  | BuiltinFun.EncodeUtf8 =>
+    ⟨⟨1000 + 42921 * argSize args 0⟩, ⟨4 + 2 * argSize args 0⟩⟩
+  | BuiltinFun.EqualsByteString =>
+    ⟨⟨if argSize args 0 == argSize args 1 then 28755 + 75 * argSize args 0 else 30623⟩, ⟨1⟩⟩
+  | BuiltinFun.EqualsData =>
+    ⟨⟨898148 + 27279 * minArgSize args⟩, ⟨1⟩⟩
+  | BuiltinFun.EqualsInteger =>
+    ⟨⟨51775 + 558 * minArgSize args⟩, ⟨1⟩⟩
+  | BuiltinFun.EqualsString =>
+    ⟨⟨if argSize args 0 == argSize args 1 then 1000 + 60594 * argSize args 0 else 39184⟩, ⟨1⟩⟩
+  | BuiltinFun.FstPair =>
+    ⟨⟨141895⟩, ⟨32⟩⟩
+  | BuiltinFun.HeadList =>
+    ⟨⟨83150⟩, ⟨32⟩⟩
+  | BuiltinFun.IData =>
+    ⟨⟨15299⟩, ⟨32⟩⟩
+  | BuiltinFun.IfThenElse =>
+    ⟨⟨76049⟩, ⟨1⟩⟩
+  | BuiltinFun.IndexByteString =>
+    ⟨⟨13169⟩, ⟨4⟩⟩
+  | BuiltinFun.IntegerToByteString =>
+    let memSize := match args[1]? with
+      | some (CekValue.VCon (Const.Integer n)) =>
+          if n > 0 then (n.toNat - 1) / 8 + 1 else argSize args 0
+      | _ => argSize args 0
+    ⟨⟨1293828 + 28716 * argSize args 0 + 63 * (argSize args 0)^2⟩, ⟨memSize⟩⟩
+  | BuiltinFun.Keccak_256 =>
+    ⟨⟨2261318 + 64571 * argSize args 0⟩, ⟨4⟩⟩
+  | BuiltinFun.LengthOfByteString =>
+    ⟨⟨22100⟩, ⟨10⟩⟩
+  | BuiltinFun.LessThanByteString =>
+    ⟨⟨28999 + 74 * minArgSize args⟩, ⟨1⟩⟩
+  | BuiltinFun.LessThanEqualsByteString =>
+    ⟨⟨28999 + 74 * minArgSize args⟩, ⟨1⟩⟩
+  | BuiltinFun.LessThanEqualsInteger =>
+    ⟨⟨43285 + 552 * minArgSize args⟩, ⟨1⟩⟩
+  | BuiltinFun.LessThanInteger =>
+    ⟨⟨44749 + 541 * minArgSize args⟩, ⟨1⟩⟩
+  | BuiltinFun.ListData =>
+    ⟨⟨33852⟩, ⟨32⟩⟩
+  | BuiltinFun.MapData =>
+    ⟨⟨68246⟩, ⟨32⟩⟩
+  | BuiltinFun.MkCons =>
+    ⟨⟨72362⟩, ⟨32⟩⟩
+  | BuiltinFun.MkNilData =>
+    ⟨⟨7243⟩, ⟨32⟩⟩
+  | BuiltinFun.MkNilPairData =>
+    ⟨⟨7391⟩, ⟨32⟩⟩
+  | BuiltinFun.MkPairData =>
+    ⟨⟨11546⟩, ⟨32⟩⟩
+  | BuiltinFun.ModInteger =>
+    -- above_and_below_diagonal: always quadratic formula with x=max(sizes), y=min(sizes).
+    -- CEK args are reversed: args[0]=denom=size2, args[1]=num=size1.
+    -- memory: linear_in_y = argSize args 0 (denom size = size2).
+    let xE := max (argSize args 1) (argSize args 0)
+    let yE := min (argSize args 1) (argSize args 0)
+    ⟨⟨Int.toNat (max 85848 (123203 + 1716 * ↑xE + 7305 * ↑yE + 57 * ↑xE^2 + 960 * ↑xE * ↑yE - 900 * ↑yE^2))⟩, ⟨argSize args 0⟩⟩
+  | BuiltinFun.MultiplyInteger =>
+    ⟨⟨90434 + 519 * argSize args 0 * argSize args 1⟩, ⟨addedArgSize args⟩⟩
+  | BuiltinFun.NullList =>
+    ⟨⟨74433⟩, ⟨32⟩⟩
+  | BuiltinFun.QuotientInteger =>
+    ⟨⟨if argSize args 0 > argSize args 1 then 85848 else Int.toNat (max 85848 (123203 + 1716 * ↑(argSize args 1) + 7305 * ↑(argSize args 0) + 57 * ↑(argSize args 1)^2 + 960 * ↑(argSize args 0) * ↑(argSize args 1) - 900 * ↑(argSize args 0)^2))⟩, ⟨max 1 (argSize args 1 - argSize args 0)⟩⟩
+  | BuiltinFun.RemainderInteger =>
+    -- mem = linear_in_y = size(denom) = argSize args 0.
+    ⟨⟨if argSize args 0 > argSize args 1 then 85848 else Int.toNat (max 85848 (123203 + 1716 * ↑(argSize args 1) + 7305 * ↑(argSize args 0) + 57 * ↑(argSize args 1)^2 + 960 * ↑(argSize args 0) * ↑(argSize args 1) - 900 * ↑(argSize args 0)^2))⟩, ⟨argSize args 0⟩⟩
+  | BuiltinFun.SerializeData =>
+    ⟨⟨955506 + 213312 * argSize args 0⟩, ⟨2 * argSize args 0⟩⟩
+  | BuiltinFun.Sha2_256 =>
+    ⟨⟨270652 + 22588 * argSize args 0⟩, ⟨4⟩⟩
+  | BuiltinFun.Sha3_256 =>
+    ⟨⟨1457325 + 64566 * argSize args 0⟩, ⟨4⟩⟩
+  | BuiltinFun.SliceByteString =>
+    ⟨⟨20467 + 1 * argSize args 0⟩, ⟨4⟩⟩
+  | BuiltinFun.SndPair =>
+    ⟨⟨141992⟩, ⟨32⟩⟩
+  | BuiltinFun.SubtractInteger =>
+    ⟨⟨100788 + 420 * maxArgSize args⟩, ⟨1 + 1 * maxArgSize args⟩⟩
+  | BuiltinFun.TailList =>
+    ⟨⟨81663⟩, ⟨32⟩⟩
+  | BuiltinFun.Trace =>
+    ⟨⟨59498⟩, ⟨32⟩⟩
+  | BuiltinFun.UnBData =>
+    ⟨⟨20142⟩, ⟨32⟩⟩
+  | BuiltinFun.UnConstrData =>
+    ⟨⟨24588⟩, ⟨32⟩⟩
+  | BuiltinFun.UnIData =>
+    ⟨⟨20744⟩, ⟨32⟩⟩
+  | BuiltinFun.UnListData =>
+    ⟨⟨25933⟩, ⟨32⟩⟩
+  | BuiltinFun.UnMapData =>
+    ⟨⟨24623⟩, ⟨32⟩⟩
+  | BuiltinFun.VerifyEcdsaSecp256k1Signature =>
+    ⟨⟨43053543⟩, ⟨10⟩⟩
+  | BuiltinFun.VerifyEd25519Signature =>
+    ⟨⟨53384111 + 14333 * argSize args 1⟩, ⟨10⟩⟩
+  | BuiltinFun.VerifySchnorrSecp256k1Signature =>
+    ⟨⟨43574283 + 26308 * argSize args 1⟩, ⟨10⟩⟩
+  | BuiltinFun.AndByteString =>
+    ⟨⟨100181 + 726 * argSize args 1 + 719 * argSize args 0⟩, ⟨max (argSize args 0) (argSize args 1)⟩⟩
+  | BuiltinFun.OrByteString =>
+    ⟨⟨100181 + 726 * argSize args 1 + 719 * argSize args 0⟩, ⟨max (argSize args 0) (argSize args 1)⟩⟩
+  | BuiltinFun.XorByteString =>
+    ⟨⟨100181 + 726 * argSize args 1 + 719 * argSize args 0⟩, ⟨max (argSize args 0) (argSize args 1)⟩⟩
+  | BuiltinFun.ComplementByteString =>
+    ⟨⟨107878 + 680 * argSize args 0⟩, ⟨argSize args 0⟩⟩
+  | BuiltinFun.ReadBit =>
+    ⟨⟨95336⟩, ⟨1⟩⟩
+  | BuiltinFun.WriteBits =>
+    ⟨⟨281145 + 18848 * argSize args 1⟩, ⟨argSize args 2⟩⟩
+  | BuiltinFun.ReplicateByte =>
+    let x := match (args[1]? : Option CekValue) with
+      | some (CekValue.VCon (Const.Integer n)) =>
+          if n ≤ 0 then 0 else (n.toNat - 1) / 8 + 1
+      | _ => 0
+    ⟨⟨180194 + 159 * x⟩, ⟨1 + 1 * x⟩⟩
+  | BuiltinFun.ShiftByteString =>
+    ⟨⟨158519 + 8942 * argSize args 1⟩, ⟨argSize args 1⟩⟩
+  | BuiltinFun.RotateByteString =>
+    ⟨⟨159378 + 8813 * argSize args 1⟩, ⟨argSize args 1⟩⟩
+  | BuiltinFun.CountSetBits =>
+    ⟨⟨107490 + 3298 * argSize args 0⟩, ⟨1⟩⟩
+  | BuiltinFun.FindFirstSetBit =>
+    ⟨⟨106057 + 655 * argSize args 0⟩, ⟨1⟩⟩
+  | BuiltinFun.Ripemd_160 =>
+    ⟨⟨1964219 + 24520 * argSize args 0⟩, ⟨3⟩⟩
+  | BuiltinFun.ExpModInteger =>
+    let mm := argSize args 0
+    let ee := argSize args 1
+    let aa := argSize args 2
+    let cost0 := 607153 + 231697 * ee * mm + 53144 * ee * mm^2
+    ⟨⟨if aa > mm then cost0 + cost0 / 2 else cost0⟩, ⟨mm⟩⟩
+  | BuiltinFun.DropList =>
+    let x := match (args[1]? : Option CekValue) with
+      | some (CekValue.VCon (Const.Integer n)) => n.natAbs
+      | _ => 0
+    ⟨⟨116711 + 1957 * x⟩, ⟨4⟩⟩
+
 def builtinCostSelected (semVar: BuiltinSemanticsVariant) (b : BuiltinFun) (args : List CekValue) : ExBudget :=
   match semVar with
   | .defaultFunSemanticsVariantA => builtinCostsA b args
   | .defaultFunSemanticsVariantB => builtinCostsB b args
   | .defaultFunSemanticsVariantC => builtinCostsC b args
+  | .defaultFunSemanticsVariantD => builtinCostsD b args
+  | .defaultFunSemanticsVariantE => builtinCostsE b args
 
 end PlutusCore.UPLC.CostModels

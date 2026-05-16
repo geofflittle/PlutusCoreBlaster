@@ -40,7 +40,7 @@ check_plutus_core: clean_plutus_core
 
 .PHONY: build_tests
 build_tests:
-	LEAN_NUM_THREADS=5 lake test
+	lake test
 
 .PHONY: clean_tests
 clean_tests:
@@ -48,7 +48,7 @@ clean_tests:
 
 .PHONY: check_tests
 check_tests: clean_tests
-	LEAN_NUM_THREADS=5 ./scripts/check_lean_project_compilation.sh Tests Tests Tests/Conformance
+	./scripts/check_lean_project_compilation.sh Tests Tests Tests/Conformance
 
 # Path to the plutus-conformance directory containing test-cases/.
 CONFORMANCE_ROOT ?= .plutus-conformance/plutus-conformance
@@ -74,11 +74,11 @@ gen_conformance_tests:
 
 .PHONY: build_conformance
 build_conformance:
-	LEAN_NUM_THREADS=5 lake build Tests.Conformance
+	lake build Tests.Conformance
 
 .PHONY: check_conformance
 check_conformance: clean_tests
-	LEAN_NUM_THREADS=5 ./scripts/check_lean_project_compilation.sh Tests.Conformance Tests/Conformance
+	./scripts/check_lean_project_compilation.sh Tests.Conformance Tests/Conformance
 
 # Aggregate commands
 # To maintain when you add new components
