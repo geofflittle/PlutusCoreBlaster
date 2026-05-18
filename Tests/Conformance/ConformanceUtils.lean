@@ -119,7 +119,6 @@ mutual
         alphaEqWith [(x1, x2)] (closeTermWithEnv env1 [x1] p t1) (closeTermWithEnv env2 [x2] p t2)
     | p + 1, .VDelay t1 env1,       .VDelay t2 env2       =>
         alphaEqWith [] (closeTermWithEnv env1 [] p t1) (closeTermWithEnv env2 [] p t2)
-    | 0    , _              , _                           => true
     | _    , _              , _                           => false
 
   private def cekValueListBeq : Nat → List CekValue → List CekValue → Bool

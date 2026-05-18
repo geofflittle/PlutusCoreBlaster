@@ -13,7 +13,6 @@ import PlutusCore.UPLC.BuiltinFunctions.String
 import PlutusCore.UPLC.BuiltinFunctions.Trace
 import PlutusCore.UPLC.BuiltinFunctions.Unit
 
-
 namespace PlutusCore.UPLC.BuiltinFunctions.Evaluate
 
 open PlutusCore.Default

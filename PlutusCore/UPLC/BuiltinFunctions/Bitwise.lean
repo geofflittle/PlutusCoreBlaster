@@ -77,19 +77,19 @@ def complementByteString (Vs : List CekValue) : Option CekValue :=
 -- Define shiftByteString: args reversed as [k, s]
 def shiftByteString (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.Integer k), CekValue.VCon (Const.ByteString s)] =>
+  | [.VCon (.Integer k), .VCon (.ByteString s)] =>
       -- Plutus requires the integer arg to fit in Int64; reject out-of-range values.
       if k > 9223372036854775807 || k < -9223372036854775808 then none
-      else some (CekValue.VCon (Const.ByteString ⟨PLC.shiftByteString s.data k⟩))
+      else some (.VCon (.ByteString ⟨PLC.shiftByteString s.data k⟩))
   | _ => none
 
 -- Define rotateByteString: args reversed as [k, s]
 def rotateByteString (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.Integer k), CekValue.VCon (Const.ByteString s)] =>
+  | [.VCon (.Integer k), .VCon (.ByteString s)] =>
       -- Plutus requires the integer arg to fit in Int64; reject out-of-range values.
       if k > 9223372036854775807 || k < -9223372036854775808 then none
-      else some (CekValue.VCon (Const.ByteString ⟨PLC.rotateByteString s.data k⟩))
+      else some (.VCon (.ByteString ⟨PLC.rotateByteString s.data k⟩))
   | _ => none
 
 -- Define countSetBits
