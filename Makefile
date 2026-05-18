@@ -80,36 +80,6 @@ build_conformance:
 check_conformance: clean_tests
 	./scripts/check_lean_project_compilation.sh Tests.Conformance Tests/Conformance
 
-# Path to the plutus-conformance directory containing test-cases/.
-CONFORMANCE_ROOT ?= .plutus-conformance/plutus-conformance
-# Path string embedded in generated #import_uplc lines (interpreted at test-build time).
-CONFORMANCE_EMBED_ROOT ?= .plutus-conformance/plutus-conformance
-
-# Optional: set excludeNotImplemented=1 (or any non-empty value) to skip test
-# categories whose underlying features are not yet implemented in this Lean
-# formalization.
-ifneq ($(strip $(excludeNotImplemented)),)
-EXCLUDE_NOT_IMPLEMENTED_FLAG := --exclude-not-implemented
-else
-EXCLUDE_NOT_IMPLEMENTED_FLAG :=
-endif
-
-.PHONY: gen_conformance_tests
-gen_conformance_tests:
-	lake build gen_conformance_tests
-	lake exe gen_conformance_tests $(CONFORMANCE_ROOT) \
-		--out Tests/Conformance/Generated \
-		--embed-root $(CONFORMANCE_EMBED_ROOT) \
-		$(EXCLUDE_NOT_IMPLEMENTED_FLAG)
-
-.PHONY: build_conformance
-build_conformance:
-	LEAN_NUM_THREADS=5 lake build Tests.Conformance
-
-.PHONY: check_conformance
-check_conformance: clean_tests
-	LEAN_NUM_THREADS=5 ./scripts/check_lean_project_compilation.sh Tests.Conformance Tests/Conformance
-
 # Aggregate commands
 # To maintain when you add new components
 .PHONY: build_all
