@@ -333,8 +333,8 @@ def builtinCostsA (b : BuiltinFun) (args : List CekValue) : ExBudget :=
     ⟨⟨35190005⟩, ⟨10⟩⟩
   | BuiltinFun.VerifyEd25519Signature =>
     -- Source: verifyEd25519Signature pk msg sig; CEK args = [sig, msg, pk].
-    -- Model: linear_in_y → slope * size(msg) = argSize args 1.
-    ⟨⟨57996947 + 18975 * argSize args 1⟩, ⟨10⟩⟩
+    -- Model: linear_in_z → slope * size(sig) = argSize args 0.
+    ⟨⟨57996947 + 18975 * argSize args 0⟩, ⟨10⟩⟩
   | BuiltinFun.VerifySchnorrSecp256k1Signature =>
     -- Source: verifySchnorrSecp256k1Signature pk msg sig; CEK args = [sig, msg, pk].
     -- Model: linear_in_y → slope * size(msg) = argSize args 1.
@@ -983,9 +983,10 @@ def builtinCostsD (b : BuiltinFun) (args : List CekValue) : ExBudget :=
   | BuiltinFun.DecodeUtf8 =>
     ⟨⟨91189 + 769 * argSize args 0⟩, ⟨4 + 2 * argSize args 0⟩⟩
   | BuiltinFun.DivideInteger =>
-    -- above_and_below_diagonal: always formula = 228465 + 122*x*y where x=max(sizes), y=min(sizes).
-    -- Since the inner model is multiplied_sizes (symmetric), we can just use the product directly.
-    ⟨⟨228465 + 122 * argSize args 0 * argSize args 1⟩, ⟨max 1 (argSize args 1 - argSize args 0)⟩⟩
+    -- above_and_below_diagonal: same multiplied_sizes model on both sides; symmetric so x*y suffices.
+    -- JSON constant: 85848 is a floor; since 228465 + 122*1*1 ≥ 85848 it never triggers, but we keep
+    -- the `max` to mirror JSON semantics literally.
+    ⟨⟨max 85848 (228465 + 122 * argSize args 0 * argSize args 1)⟩, ⟨max 1 (argSize args 1 - argSize args 0)⟩⟩
   | BuiltinFun.EncodeUtf8 =>
     ⟨⟨1000 + 42921 * argSize args 0⟩, ⟨4 + 2 * argSize args 0⟩⟩
   | BuiltinFun.EqualsByteString =>
@@ -1037,10 +1038,11 @@ def builtinCostsD (b : BuiltinFun) (args : List CekValue) : ExBudget :=
   | BuiltinFun.MkPairData =>
     ⟨⟨11546⟩, ⟨32⟩⟩
   | BuiltinFun.ModInteger =>
-    -- above_and_below_diagonal: always formula = 228465 + 122*x*y where x=max(sizes), y=min(sizes).
-    -- Since the inner model is multiplied_sizes (symmetric), we can just use the product directly.
+    -- above_and_below_diagonal: same multiplied_sizes model on both sides; symmetric so x*y suffices.
+    -- JSON constant: 85848 is a floor; since 228465 + 122*1*1 ≥ 85848 it never triggers, but we keep
+    -- the `max` to mirror JSON semantics literally.
     -- memory: linear_in_y2 = argSize args 0 (denom size).
-    ⟨⟨228465 + 122 * argSize args 0 * argSize args 1⟩, ⟨argSize args 0⟩⟩
+    ⟨⟨max 85848 (228465 + 122 * argSize args 0 * argSize args 1)⟩, ⟨argSize args 0⟩⟩
   | BuiltinFun.MultiplyInteger =>
     ⟨⟨90434 + 519 * argSize args 0 * argSize args 1⟩, ⟨addedArgSize args⟩⟩
   | BuiltinFun.NullList =>
