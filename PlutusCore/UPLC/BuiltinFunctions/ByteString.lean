@@ -43,7 +43,8 @@ def consByteString (semanticsVersion : PLC.BuiltinSemanticsVariant) (Vs : List C
   match Vs with
   | [CekValue.VCon (Const.ByteString bs), CekValue.VCon (Const.Integer x)] =>
        match semanticsVersion with
-       | .defaultFunSemanticsVariantC => tryCatchSome (PLC.consByteStringV2 x bs) (CekValue.VCon ∘ Const.ByteString)
+       | .defaultFunSemanticsVariantC | .defaultFunSemanticsVariantE =>
+           tryCatchSome (PLC.consByteStringV2 x bs) (CekValue.VCon ∘ Const.ByteString)
        | _ => some (CekValue.VCon (Const.ByteString (PLC.consByteStringV1 x bs)))
   | _ => none
 
