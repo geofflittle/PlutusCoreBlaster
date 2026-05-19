@@ -3,6 +3,7 @@ name: ci-conformance
 permissions:
   contents: read
   pull-requests: write
+  checks: write
 
 on:
   workflow_dispatch:
@@ -118,6 +119,28 @@ jobs:
           echo "sha=$head_sha" >> "$GITHUB_OUTPUT"
           echo "repo=$head_repo" >> "$GITHUB_OUTPUT"
 
+      - name: Create check run on PR head
+        if: github.event_name == 'issue_comment'
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ steps.pr.outputs.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          # Post a Check Run tied to the PR head SHA so the conformance job
+          # appears in the PR's "Checks" panel. issue_comment-triggered runs
+          # otherwise attach to the default branch and stay invisible there.
+          id=$(gh api --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/check-runs" \
+            -f name='conformance' \
+            -f head_sha="$HEAD_SHA" \
+            -f status='in_progress' \
+            -f details_url="$RUN_URL" \
+            --jq '.id')
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
       - name: Resolve plutus ref
         id: plutus
         env:
@@ -209,3 +232,18 @@ jobs:
         with:
           name: conformance-build
           path: PlutusCoreBlaster/build.log
+
+      - name: Finalize check run
+        if: always() && github.event_name == 'issue_comment' && steps.check.outputs.id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_ID: ${{ steps.check.outputs.id }}
+          # job.status is one of: success, failure, cancelled — all valid
+          # conclusion values for the Checks API.
+          CONCLUSION: ${{ job.status }}
+        run: |
+          gh api --method PATCH \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/check-runs/$CHECK_ID" \
+            -f status='completed' \
+            -f conclusion="$CONCLUSION"
