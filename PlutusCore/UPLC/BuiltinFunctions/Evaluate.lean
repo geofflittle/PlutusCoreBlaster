@@ -13,7 +13,6 @@ import PlutusCore.UPLC.BuiltinFunctions.String
 import PlutusCore.UPLC.BuiltinFunctions.Trace
 import PlutusCore.UPLC.BuiltinFunctions.Unit
 
-
 namespace PlutusCore.UPLC.BuiltinFunctions.Evaluate
 
 open PlutusCore.Default
@@ -29,7 +28,6 @@ open PlutusCore.UPLC.BuiltinFunctions.Pair
 open PlutusCore.UPLC.BuiltinFunctions.String
 open PlutusCore.UPLC.BuiltinFunctions.Trace
 open PlutusCore.UPLC.BuiltinFunctions.Unit
-open PlutusCore.UPLC.BuiltinFunctions.Bitwise
 
 -- Evaluate a builtin function based on its type.
 def evaluateBuiltinFunction (semanticsVariant : BuiltinSemanticsVariant) (b : BuiltinFun) : List CekValue → Option CekValue :=

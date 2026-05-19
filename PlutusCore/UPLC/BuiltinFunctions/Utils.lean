@@ -5,4 +5,4 @@ def tryCatchSome (f : Except String α) (k : α → β) : Option β :=
   | Except.ok r => some (k r)
   | Except.error _ => none
 
- end PlutusCore.UPLC.BuiltinFunctions.Utils
+end PlutusCore.UPLC.BuiltinFunctions.Utils

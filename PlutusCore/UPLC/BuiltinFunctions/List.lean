@@ -25,64 +25,64 @@ open PlutusCore.UPLC.BuiltinFunctions.Utils
 -- Define chooseList
 def chooseList (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [listCase, nullCase, CekValue.VCon (Const.ConstList l)]
-  | [listCase, nullCase, CekValue.VCon (Const.ConstDataList l)]
-  | [listCase, nullCase, CekValue.VCon (Const.ConstPairDataList l)] => some (UPLC.chooseList l nullCase listCase)
+  | [listCase, nullCase, .VCon (.ConstList l)]
+  | [listCase, nullCase, .VCon (.ConstDataList l)]
+  | [listCase, nullCase, .VCon (.ConstPairDataList l)] => some (UPLC.chooseList l nullCase listCase)
   | _ => none
 
 -- Define mkCons
 def mkCons (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.ConstList xs), CekValue.VCon x] =>
-      some (CekValue.VCon (Const.ConstList (PLC.mkCons x xs)))
+  | [.VCon (.ConstList xs), .VCon x] =>
+      some (.VCon (.ConstList (PLC.mkCons x xs)))
 
-  | [CekValue.VCon (Const.ConstDataList xs), CekValue.VCon (Const.Data x)] =>
+  | [.VCon (.ConstDataList xs), .VCon (.Data x)] =>
       -- case for ConstDataList
-      some (CekValue.VCon (Const.ConstDataList (PLC.mkCons x xs)))
+      some (.VCon (.ConstDataList (PLC.mkCons x xs)))
 
-  | [CekValue.VCon (Const.ConstPairDataList xs), CekValue.VCon (Const.PairData p)] =>
+  | [.VCon (.ConstPairDataList xs), .VCon (.PairData p)] =>
       -- case for ConsPairDataList
-      some (CekValue.VCon (Const.ConstPairDataList (PLC.mkCons p xs)))
+      some (.VCon (.ConstPairDataList (PLC.mkCons p xs)))
   | _ => none
 
 -- Define headList
 def headList (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.ConstList xs)] =>
-      tryCatchSome (PLC.headList xs) (CekValue.VCon)
+  | [.VCon (.ConstList xs)] =>
+      tryCatchSome (PLC.headList xs) (.VCon)
 
-  | [CekValue.VCon (Const.ConstDataList xs)] =>
+  | [.VCon (.ConstDataList xs)] =>
       -- case for ConstDataList
-      tryCatchSome (PLC.headList xs) (CekValue.VCon ∘ Const.Data)
+      tryCatchSome (PLC.headList xs) (.VCon ∘ .Data)
 
-  | [CekValue.VCon (Const.ConstPairDataList xs)] =>
+  | [.VCon (.ConstPairDataList xs)] =>
       -- case for ConstPairDataList
-      tryCatchSome (PLC.headList xs) (CekValue.VCon ∘ Const.PairData)
+      tryCatchSome (PLC.headList xs) (.VCon ∘ .PairData)
 
   | _ => none
 
 -- Define tailList
 def tailList (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.ConstList xs)] =>
-      tryCatchSome (PLC.tailList xs) (CekValue.VCon ∘ Const.ConstList)
+  | [.VCon (.ConstList xs)] =>
+      tryCatchSome (PLC.tailList xs) (.VCon ∘ .ConstList)
 
-  | [CekValue.VCon (Const.ConstDataList xs)] =>
+  | [.VCon (.ConstDataList xs)] =>
       -- case for ConstDataList
-      tryCatchSome (PLC.tailList xs) (CekValue.VCon ∘ Const.ConstDataList)
+      tryCatchSome (PLC.tailList xs) (.VCon ∘ .ConstDataList)
 
-  | [CekValue.VCon (Const.ConstPairDataList xs)] =>
+  | [.VCon (.ConstPairDataList xs)] =>
       -- case for ConstPairDataList
-      tryCatchSome (PLC.tailList xs) (CekValue.VCon ∘ Const.ConstPairDataList)
+      tryCatchSome (PLC.tailList xs) (.VCon ∘ .ConstPairDataList)
   | _ => none
 
 -- Define nullList
 def nullList (Vs : List CekValue) : Option CekValue :=
   match Vs with
-  | [CekValue.VCon (Const.ConstList xs)]
-  | [CekValue.VCon (Const.ConstDataList xs)]
-  | [CekValue.VCon (Const.ConstPairDataList xs)] =>
-      some (CekValue.VCon (Const.Bool (PLC.nullList xs)))
+  | [.VCon (.ConstList xs)]
+  | [.VCon (.ConstDataList xs)]
+  | [.VCon (.ConstPairDataList xs)] =>
+      some (.VCon (.Bool (PLC.nullList xs)))
   | _ => none
 
 -- dropList n xs = xs.drop n (n < 0 treated as 0 via Int.toNat)
