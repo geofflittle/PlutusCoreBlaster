@@ -125,6 +125,7 @@ jobs:
       - name: Create check run on PR head
         if: github.event_name == 'issue_comment'
         id: check
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ steps.pr.outputs.sha }}
@@ -134,6 +135,8 @@ jobs:
           # Post a Check Run tied to the PR head SHA so the conformance job
           # appears in the PR's "Checks" panel. issue_comment-triggered runs
           # otherwise attach to the default branch and stay invisible there.
+          # Best-effort: a failure here leaves steps.check.outputs.id empty, so
+          # the Finalize step below will skip and conformance still runs.
           id=$(gh api --method POST \
             -H "Accept: application/vnd.github+json" \
             "/repos/${{ github.repository }}/check-runs" \
@@ -238,6 +241,7 @@ jobs:
 
       - name: Finalize check run
         if: always() && github.event_name == 'issue_comment' && steps.check.outputs.id != ''
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           CHECK_ID: ${{ steps.check.outputs.id }}
