@@ -13,6 +13,7 @@ import PlutusCore.UPLC.BuiltinFunctions.Pair
 import PlutusCore.UPLC.BuiltinFunctions.String
 import PlutusCore.UPLC.BuiltinFunctions.Trace
 import PlutusCore.UPLC.BuiltinFunctions.Unit
+import PlutusCore.UPLC.BuiltinFunctions.Value
 
 namespace PlutusCore.UPLC.BuiltinFunctions.Evaluate
 
@@ -30,6 +31,7 @@ open PlutusCore.UPLC.BuiltinFunctions.Pair
 open PlutusCore.UPLC.BuiltinFunctions.String
 open PlutusCore.UPLC.BuiltinFunctions.Trace
 open PlutusCore.UPLC.BuiltinFunctions.Unit
+open PlutusCore.UPLC.BuiltinFunctions.Value
 
 -- Evaluate a builtin function based on its type.
 def evaluateBuiltinFunction (semanticsVariant : BuiltinSemanticsVariant) (b : BuiltinFun) : List CekValue → Option CekValue :=
@@ -148,5 +150,13 @@ def evaluateBuiltinFunction (semanticsVariant : BuiltinSemanticsVariant) (b : Bu
   | .LengthOfArray                   => lengthOfArray
   | .ListToArray                     => listToArray
   | .IndexArray                      => indexArray
+  -- Value
+  | .InsertCoin                      => Value.insertCoin
+  | .LookupCoin                      => Value.lookupCoin
+  | .UnionValue                      => Value.unionValue
+  | .ValueContains                   => Value.valueContains
+  | .ValueData                       => Value.valueData
+  | .UnValueData                     => Value.unValueData
+  | .ScaleValue                      => Value.scaleValue
 
 end PlutusCore.UPLC.BuiltinFunctions.Evaluate
