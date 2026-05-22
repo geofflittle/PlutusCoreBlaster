@@ -156,36 +156,47 @@ def encodeData : Data → Option String
 -- =  Decoding  =
 -- ==============
 
+/-- Wrap a list of bytes into the UPLC `ByteString` domain value.
+    `ByteString` is intentionally a wrapper around `String` (Haskell-compat),
+    so a list of bytes is encoded by mapping each byte to the corresponding
+    Char codepoint 0-255. -/
+@[inline] def bytesToByteString (bs : List UInt8) : ByteString :=
+  ⟨String.mk (Char.ofUInt8 <$> bs)⟩
+
+/-- Wrap a `ByteArray` into the UPLC `ByteString` domain value. -/
+@[inline] def byteArrayToByteString (b : ByteArray) : ByteString :=
+  bytesToByteString b.toList
+
 /-- Helper function that is used in reconstructing natural numbers from their big endian representation -/
-def d_ (i : Nat) (c : Char) := (Char.toNat c) * (256 ^ i)
+def d_ (i : Nat) (c : UInt8) := c.toNat * (256 ^ i)
 
 -- Spec B.4. The `d_k` function is a general function to reconstruct a `k` byte natural number
 -- from its big endian representation. In the spec only the forms with k = 1, 2, 4 and 8 are used.
 /-- Decodes a one byte integer. -/
-def d₁ : List Char → Option (List Char × Nat)
-  | b :: t => .some (t, Char.toNat b)
+def d₁ : List UInt8 → Option (List UInt8 × Nat)
+  | b :: t => .some (t, b.toNat)
   | []     => .none
 
 /-- Decodes a two byte integer. -/
-def d₂ : List Char → Option (List Char × Nat)
+def d₂ : List UInt8 → Option (List UInt8 × Nat)
   | b₁ :: b₀ :: t => .some (t, d_ 1 b₁ + d_ 0 b₀)
   | _             => .none
 
 /-- Decodes a four byte integer. -/
-def d₄ : List Char → Option (List Char × Nat)
+def d₄ : List UInt8 → Option (List UInt8 × Nat)
   | b₃ :: b₂ :: b₁ :: b₀ :: t => .some (t, d_ 3 b₃ + d_ 2 b₂ + d_ 1 b₁ + d_ 0 b₀)
   | _                         => .none
 
 /-- Decodes an eight byte integer. -/
-def d₈ : List Char → Option (List Char × Nat)
+def d₈ : List UInt8 → Option (List UInt8 × Nat)
   | b₇ :: b₆ :: b₅ :: b₄ :: b₃ :: b₂ :: b₁ :: b₀ :: t => .some (t, d_ 7 b₇ + d_ 6 b₆ + d_ 5 b₅ + d_ 4 b₄ + d_ 3 b₃ + d_ 2 b₂ + d_ 1 b₁ + d_ 0 b₀)
   | _                                                 => .none
 
 /-- Decodes a "head" structure that describes how the next bytes should be interpreted. -/
 -- Spec B.4. D_head
-def decodeHead : List Char → Option ((List Char) × Nat × Nat)
+def decodeHead : List UInt8 → Option ((List UInt8) × Nat × Nat)
   | n' :: s =>
-      let n := Char.toNat n'
+      let n := n'.toNat
       let d := n / 32
       match n % 32 with
       | 24 => (λ (s', k) => (s', d, k)) <$> d₁ s
@@ -198,15 +209,15 @@ def decodeHead : List Char → Option ((List Char) × Nat × Nat)
 
 /-- Decodes a "head" structure with indefinite length that describes how the next bytes should be interpreted. -/
 -- Spec B.4. D_indef
-def decodeIndef : List Char → Option (List Char × Nat)
+def decodeIndef : List UInt8 → Option (List UInt8 × Nat)
   | n' :: s =>
-      let n := Char.toNat n'
+      let n := n'.toNat
       if n % 32 = 31
         then .some (s, n / 32)
         else .none
   | [] => .none
 
-def decodeBytesLoop (acc : List Char) : Nat → List Char → Option (List Char × List Char)
+def decodeBytesLoop (acc : List UInt8) : Nat → List UInt8 → Option (List UInt8 × List UInt8)
   | .zero  , s       => .some (s, (List.reverse acc))
   | .succ _, []      => .none
   | .succ p, b :: s' => decodeBytesLoop (b :: acc) p s'
@@ -217,7 +228,7 @@ def decodeBytes := decodeBytesLoop []
 
 /-- Decodes a definite length "block" (bytestring chunk). -/
 -- Spec B.5. D_block
-def decodeBlock (s : List Char) : Option (List Char × List Char) := do
+def decodeBlock (s : List UInt8) : Option (List UInt8 × List UInt8) := do
   let (s', m, n) ← decodeHead s
   if m = 2 ∧ n ≤ 64
     then decodeBytes n s'
@@ -228,7 +239,7 @@ def decodeBlock (s : List Char) : Option (List Char × List Char) := do
 -- ==========================
 
 /-- Helper theorem: decodeHead always consumes at least one byte on success -/
-theorem decodeHead_consumes (s : List Char) :
+theorem decodeHead_consumes (s : List UInt8) :
   ∀ s' d k, decodeHead s = some (s', d, k) → s'.length < s.length := by
   intro s' d k h
   unfold decodeHead at h
@@ -323,7 +334,7 @@ theorem decodeHead_consumes (s : List Char) :
       · simp at h
 
 /-- Helper theorem: decodeBytesLoop consumes exactly n bytes regardless of accumulator -/
-theorem decodeBytesLoop_consumes : ∀ (acc : List Char) (n : Nat) (s : List Char) (s' t : List Char),
+theorem decodeBytesLoop_consumes : ∀ (acc : List UInt8) (n : Nat) (s : List UInt8) (s' t : List UInt8),
   decodeBytesLoop acc n s = some (s', t) → s'.length + n = s.length := by
   intro acc n s s' t h
   revert acc s s' t
@@ -347,14 +358,14 @@ theorem decodeBytesLoop_consumes : ∀ (acc : List Char) (n : Nat) (s : List Cha
         _ = s''.length + 1 := by rw [ih_result]
 
 /-- Helper theorem: decodeBytes consumes exactly n bytes on success -/
-theorem decodeBytes_consumes (n : Nat) (s : List Char) :
+theorem decodeBytes_consumes (n : Nat) (s : List UInt8) :
   ∀ s' t, decodeBytes n s = some (s', t) → s'.length + n = s.length := by
   intro s' t h
   unfold decodeBytes at h
   exact decodeBytesLoop_consumes [] n s s' t h
 
 /-- Helper theorem: decodeBlock consumes at least one byte on success -/
-theorem decodeBlock_consumes (s : List Char) :
+theorem decodeBlock_consumes (s : List UInt8) :
   ∀ s' t, decodeBlock s = some (s', t) → s'.length < s.length := by
   intro s' t h
   unfold decodeBlock at h
@@ -367,7 +378,7 @@ theorem decodeBlock_consumes (s : List Char) :
   · simp at h
 
 /-- Helper theorem: decodeIndef consumes exactly one byte on success -/
-theorem decodeIndef_consumes (s : List Char) :
+theorem decodeIndef_consumes (s : List UInt8) :
   ∀ s' n, decodeIndef s = some (s', n) → s'.length + 1 = s.length := by
   intro s' n h
   unfold decodeIndef at h
@@ -386,8 +397,8 @@ theorem decodeIndef_consumes (s : List Char) :
 
 set_option linter.unusedVariables false
 
-def decodeBlocksLoop (acc : List Char) : (s : List Char) → Option (List Char × List Char)
-  | '\xFF' :: s' => .some (s', List.reverse acc)
+def decodeBlocksLoop (acc : List UInt8) : (s : List UInt8) → Option (List UInt8 × List UInt8)
+  | 0xFF :: s' => .some (s', List.reverse acc)
   | s => match h : decodeBlock s with
       | some (s', t) => decodeBlocksLoop ((List.reverse t) ++ acc) s'
       | none => none
@@ -405,7 +416,7 @@ def decodeBlocks := decodeBlocksLoop []
 
 /-- Helper theorem: decodeBlocksLoop consumes bytes when recursing. -/
 theorem decodeBlocksLoop_consumes :
-  ∀ (n : Nat) (acc s s' : List Char) (t : List Char),
+  ∀ (n : Nat) (acc s s' : List UInt8) (t : List UInt8),
     s.length ≤ n → decodeBlocksLoop acc s = some (s', t) → s'.length < s.length := by
   intro n
   induction n with
@@ -425,7 +436,7 @@ theorem decodeBlocksLoop_consumes :
     | c :: rest =>
       unfold decodeBlocksLoop at h
       split at h
-      · -- Case: c = '\xFF'
+      · -- Case: c = 0xFF
         rename_i s'' heq
         simp at h
         obtain ⟨h1, h2⟩ := h
@@ -433,7 +444,7 @@ theorem decodeBlocksLoop_consumes :
         injection heq with heq_c heq_rest
         subst heq_rest
         simp
-      · -- Case: c ≠ '\xFF', must use decodeBlock
+      · -- Case: c ≠ 0xFF, must use decodeBlock
         split at h
         · -- decodeBlock succeeds and recurses
           rename_i s'' t' hdb
@@ -453,30 +464,28 @@ theorem decodeBlocks_consumes : ∀ s s' t, decodeBlocks s = some (s', t) → s'
   unfold decodeBlocks at h
   exact decodeBlocksLoop_consumes s.length [] s s' t (Nat.le_refl _) h
 
-/-- Decodes a bytestring from the input `s`. -/
--- Spec B.5. D_B*
-def decodeBytestring (s : String) : Option (String × String) :=
-  match decodeBlock s.data with
-  | .some (s', t) => .some (⟨s'⟩, ⟨t⟩)
+/-- Decodes a bytestring from the input list of bytes (internal, list-based). -/
+def decodeBytestringL (s : List UInt8) : Option (List UInt8 × List UInt8) :=
+  match decodeBlock s with
+  | .some (s', t) => .some (s', t)
   | .none         => do
-      let (s', n) ← decodeIndef s.data
+      let (s', n) ← decodeIndef s
       if n = 2
-        then Prod.map String.mk String.mk <$> decodeBlocks s'
+        then decodeBlocks s'
         else .none
 
-/-- Helper theorem: decodeBytestring consumes at least one byte on success -/
-theorem decodeBytestring_consumes (s : String) :
-  ∀ s' t, decodeBytestring s = some (s', t) → s'.data.length < s.data.length := by
+/-- Helper theorem: decodeBytestringL consumes at least one byte on success -/
+theorem decodeBytestringL_consumes (s : List UInt8) :
+  ∀ s' t, decodeBytestringL s = some (s', t) → s'.length < s.length := by
   intro s' t h
-  unfold decodeBytestring at h
+  unfold decodeBytestringL at h
   split at h
   · -- Case: decodeBlock succeeds
     rename_i s'' t' hdb
     simp at h
     obtain ⟨h1, h2⟩ := h
     rw [← h1]
-    simp
-    exact decodeBlock_consumes s.data s'' t' hdb
+    exact decodeBlock_consumes s s'' t' hdb
   · -- Case: decodeBlock fails, try decodeIndef + decodeBlocks
     simp only [Option.bind_eq_bind, Option.bind_eq_some_iff] at h
     obtain ⟨⟨s'', n⟩, hdi, h_rest⟩ := h
@@ -484,24 +493,29 @@ theorem decodeBytestring_consumes (s : String) :
     · cases h_blocks : decodeBlocks s'' with
       | none => simp [h_blocks] at h_rest
       | some res =>
-        simp [Prod.map, h_blocks] at h_rest
+        rcases res with ⟨ra, rb⟩
+        simp [h_blocks] at h_rest
         obtain ⟨h_eq1, h_eq2⟩ := h_rest
         rw [← h_eq1]
-        simp
-        have h1 := decodeIndef_consumes s.data s'' n hdi
-        have h2 := decodeBlocks_consumes s'' res.1 res.2 h_blocks
+        have h1 := decodeIndef_consumes s s'' n hdi
+        have h2 := decodeBlocks_consumes s'' ra rb h_blocks
         omega
     · simp at h_rest
 
+/-- Decodes a bytestring from the input `b`. -/
+-- Spec B.5. D_B*
+def decodeBytestring (b : ByteArray) : Option (ByteArray × ByteArray) :=
+  (decodeBytestringL b.toList).map (fun (rem, bs) => (rem.toByteArray, bs.toByteArray))
+
 /-- Decodes a "large" block, which can have a length larger than 64 bytes. -/
-def decodeLargeBlock (s : List Char) : Option (List Char × List Char) := do
+def decodeLargeBlock (s : List UInt8) : Option (List UInt8 × List UInt8) := do
   let (s', m, n) ← decodeHead s
   if m = 2
     then decodeBytes n s'
     else .none
 
 /-- Helper theorem: decodeLargeBlock consumes at least one byte on success -/
-theorem decodeLargeBlock_consumes (s : List Char) :
+theorem decodeLargeBlock_consumes (s : List UInt8) :
   ∀ s' t, decodeLargeBlock s = some (s', t) → s'.length < s.length := by
   intro s' t h
   unfold decodeLargeBlock at h
@@ -513,10 +527,9 @@ theorem decodeLargeBlock_consumes (s : List Char) :
     omega
   · simp at h
 
-set_option linter.unusedVariables false
-
-def decodeLargeBlocksLoop (acc : List Char) : List Char → Option (List Char × List Char)
-  | '\xFF' :: s' => .some (s', List.reverse acc)
+set_option linter.unusedVariables false in
+def decodeLargeBlocksLoop (acc : List UInt8) : List UInt8 → Option (List UInt8 × List UInt8)
+  | 0xFF :: s' => .some (s', List.reverse acc)
   | s            => match h : decodeLargeBlock s with
       | some (s', t) => decodeLargeBlocksLoop ((List.reverse t) ++ acc) s'
       | none => none
@@ -526,96 +539,96 @@ decreasing_by
   have := decodeLargeBlock_consumes s s' t h
   omega
 
-set_option linter.unusedVariables true
-
 /-- Decodes a sequence of "large" blocks. -/
 def decodeLargeBlocks := decodeLargeBlocksLoop []
 
-/-- Decodes a "large" bytestring, which can have blocks larger than 64 bytes. -/
-def decodeLargeBytestring (s : String) : Option (String × String) :=
-  match decodeLargeBlock s.data with
-  | .some (s', t) => .some (⟨s'⟩, ⟨t⟩)
+/-- Decodes a "large" bytestring from a list of bytes (internal, list-based). -/
+def decodeLargeBytestringL (s : List UInt8) : Option (List UInt8 × List UInt8) :=
+  match decodeLargeBlock s with
+  | .some (s', t) => .some (s', t)
   | .none         => do
-      let (s', n) ← decodeIndef s.data
+      let (s', n) ← decodeIndef s
       if n = 2
-        then Prod.map String.mk String.mk <$> decodeLargeBlocks s'
+        then decodeLargeBlocks s'
         else .none
+
+/-- Decodes a "large" bytestring from a `ByteArray`. -/
+def decodeLargeBytestring (b : ByteArray) : Option (ByteArray × ByteArray) :=
+  (decodeLargeBytestringL b.toList).map (fun (rem, bs) => (rem.toByteArray, bs.toByteArray))
 
 /-- Reconstructs a natural number from its big endian representation. -/
 -- Spec B.6. stoi
-def stoi (s : String) : Nat :=
-  let rec go : List Char → Nat
+def stoi (bs : List UInt8) : Nat :=
+  let rec go : List UInt8 → Nat
     | []      => 0
-    | n :: l' => 256 * go l' + (Char.toNat n)
-  go (List.reverse s.data)
+    | n :: l' => 256 * go l' + n.toNat
+  go (List.reverse bs)
 
-/- Decodes an integer value from input `s`. -/
---  Spec B.6. D_Z
-def decodeInt (s : String) : Option (String × Integer) :=
-  match decodeHead s.data with
-  | .some (s', 0, n) => .some (⟨s'⟩,  (Int.ofNat n)    )
-  | .some (s', 1, n) => .some (⟨s'⟩, -(Int.ofNat n) - 1)
-  | .some (s', 6, 2) => (λ (s'', b) => (s'',              stoi b      )) <$> decodeBytestring ⟨s'⟩
-  | .some (s', 6, 3) => (λ (s'', b) => (s'', -(Int.ofNat (stoi b) - 1))) <$> decodeBytestring ⟨s'⟩
+/- Decodes an integer value from a list of bytes (internal, list-based). -/
+def decodeIntL (s : List UInt8) : Option (List UInt8 × Integer) :=
+  match decodeHead s with
+  | .some (s', 0, n) => .some (s',  (Int.ofNat n)    )
+  | .some (s', 1, n) => .some (s', -(Int.ofNat n) - 1)
+  | .some (s', 6, 2) => (λ (s'', b) => (s'',              stoi b      )) <$> decodeBytestringL s'
+  | .some (s', 6, 3) => (λ (s'', b) => (s'', -(Int.ofNat (stoi b) - 1))) <$> decodeBytestringL s'
   | _                => .none
 
-/-- Helper theorem: decodeInt consumes at least one byte on success -/
-theorem decodeInt_consumes (s : String) :
-  ∀ s' i, decodeInt s = some (s', i) → s'.data.length < s.data.length := by
+/-- Helper theorem: decodeIntL consumes at least one byte on success -/
+theorem decodeIntL_consumes (s : List UInt8) :
+  ∀ s' i, decodeIntL s = some (s', i) → s'.length < s.length := by
   intro s' i h
-  unfold decodeInt at h
+  unfold decodeIntL at h
   split at h
-  · -- Case: decodeHead s.data = some (k, 0, n)
+  · -- Case: decodeHead s = some (k, 0, n)
     rename_i k n hdh
     simp at h
     obtain ⟨h1, h2⟩ := h
     rw [← h1]
-    simp
-    exact decodeHead_consumes s.data k 0 n hdh
-  · -- Case: decodeHead s.data = some (k, 1, n)
+    exact decodeHead_consumes s k 0 n hdh
+  · -- Case: decodeHead s = some (k, 1, n)
     rename_i k n hdh
     simp at h
     obtain ⟨h1, h2⟩ := h
     rw [← h1]
-    simp
-    exact decodeHead_consumes s.data k 1 n hdh
-  · -- Case: decodeHead s.data = some (k, 6, 2), calls decodeBytestring
+    exact decodeHead_consumes s k 1 n hdh
+  · -- Case: decodeHead s = some (k, 6, 2), calls decodeBytestringL
     rename_i k hdh
-    cases h_db : decodeBytestring ⟨k⟩ with
+    cases h_db : decodeBytestringL k with
     | none => simp [h_db] at h
     | some res =>
       simp [h_db] at h
       obtain ⟨h1, h2⟩ := h
-      have h_head := decodeHead_consumes s.data k 6 2 hdh
-      have h_bs := decodeBytestring_consumes ⟨k⟩ res.1 res.2 h_db
-      simp at h_bs
+      have h_head := decodeHead_consumes s k 6 2 hdh
+      have h_bs := decodeBytestringL_consumes k res.1 res.2 h_db
       rw [← h1]
-      simp
       omega
-  · -- Case: decodeHead s.data = some (k, 6, 3), calls decodeBytestring
+  · -- Case: decodeHead s = some (k, 6, 3), calls decodeBytestringL
     rename_i k hdh
-    cases h_db : decodeBytestring ⟨k⟩ with
+    cases h_db : decodeBytestringL k with
     | none => simp [h_db] at h
     | some res =>
       simp [h_db] at h
       obtain ⟨h1, h2⟩ := h
-      have h_head := decodeHead_consumes s.data k 6 3 hdh
-      have h_bs := decodeBytestring_consumes ⟨k⟩ res.1 res.2 h_db
-      simp at h_bs
+      have h_head := decodeHead_consumes s k 6 3 hdh
+      have h_bs := decodeBytestringL_consumes k res.1 res.2 h_db
       rw [← h1]
-      simp
       omega
   · -- Case: decodeHead fails or other cases
     simp at h
 
+/- Decodes an integer value from a `ByteArray`. -/
+--  Spec B.6. D_Z
+def decodeInt (b : ByteArray) : Option (ByteArray × Integer) :=
+  (decodeIntL b.toList).map (fun (rem, i) => (rem.toByteArray, i))
+
 /- Decodes a ctag from input `s`. -/
 -- Spec B.7. D_ctag
-def decodeCtag (s : List Char) : Option (List Char × Integer) :=
+def decodeCtag (s : List UInt8) : Option (List UInt8 × Integer) :=
   match decodeHead s with
   | .some (s', 6, 102) => do
       let (s'', m, n) ← decodeHead s'
       if m = 4 ∧ n = 2
-        then Prod.map String.data id <$> decodeInt ⟨s''⟩
+        then decodeIntL s''
         else .none
   | .some (s', 6, i) =>      if  121 ≤ i ∧ i ≤  127 then .some (s',  i -  121     )
                         else if 1280 ≤ i ∧ i ≤ 1400 then .some (s', (i - 1280) + 7)
@@ -623,13 +636,13 @@ def decodeCtag (s : List Char) : Option (List Char × Integer) :=
   | _ => .none
 
 /- Tries to decode a value from `s` using `f`. If fails it tries `g` with the same input. Fails if both fails. -/
-def decodeAlternative {α β : Type} (f : List Char → Option (List Char × α)) (g : List Char → Option (List Char × β)) (s : List Char) : Option (List Char × (α ⊕ β)) :=
+def decodeAlternative {α β : Type} (f : List UInt8 → Option (List UInt8 × α)) (g : List UInt8 → Option (List UInt8 × β)) (s : List UInt8) : Option (List UInt8 × (α ⊕ β)) :=
   match f s with
   | .some (s', a) => .some (s', .inl a)
   | .none         => (λ (s', b) => (s', .inr b)) <$> g s
 
 /-- Helper theorem: decodeAlternative consumes at least one byte on success -/
-theorem decodeAlternative_indef_head_consumes (s : List Char) :
+theorem decodeAlternative_indef_head_consumes (s : List UInt8) :
   ∀ s' r, decodeAlternative decodeIndef decodeHead s = some (s', r) → s'.length < s.length := by
   intro s' r h
   unfold decodeAlternative at h
@@ -647,7 +660,7 @@ theorem decodeAlternative_indef_head_consumes (s : List Char) :
     exact decodeHead_consumes s b hdh hb heq_head
 
 /-- Helper theorem: decodeCtag consumes at least one byte on success -/
-theorem decodeCtag_consumes (s : List Char) :
+theorem decodeCtag_consumes (s : List UInt8) :
   ∀ s' i, decodeCtag s = some (s', i) → s'.length < s.length := by
   intro s' i h
   unfold decodeCtag at h
@@ -657,22 +670,21 @@ theorem decodeCtag_consumes (s : List Char) :
     simp only [Option.bind_eq_bind, Option.bind_eq_some_iff] at h
     obtain ⟨⟨s''', m, n⟩, hdh2, h_rest⟩ := h
     split at h_rest
-    · -- decodeInt succeeds (split confirms m = 4 and n = 2)
+    · -- decodeIntL succeeds (split confirms m = 4 and n = 2)
       rename_i heq_mn
-      cases h_int : decodeInt ⟨s'''⟩ with
+      cases h_int : decodeIntL s''' with
       | none => simp [h_int] at h_rest
       | some res =>
-        simp [h_int, Prod.map] at h_rest
+        rcases res with ⟨ra, rb⟩
+        simp [h_int] at h_rest
         obtain ⟨h_eq_s', h_eq_i⟩ := h_rest
         have h_head1 := decodeHead_consumes s k 6 102 hdh
         -- Use heq_mn to show m = 4 and n = 2
         have ⟨hm, hn⟩ : m = 4 ∧ n = 2 := heq_mn
         subst hm hn
         have h_head2 := decodeHead_consumes k s''' 4 2 hdh2
-        have h_int_cons := decodeInt_consumes ⟨s'''⟩ res.1 res.2 h_int
-        simp at h_int_cons
+        have h_int_cons := decodeIntL_consumes s''' ra rb h_int
         rw [← h_eq_s']
-        simp
         omega
     · simp at h_rest
   · -- Case: decodeHead s = some (s'', 6, i_val) with i_val ≠ 102
@@ -697,22 +709,22 @@ theorem decodeCtag_consumes (s : List Char) :
 -- requires lemmas about byte consumption that create circular dependencies.
 mutual
   -- Main decoder loop for Data values
-  partial def decodeDataLoop (s : List Char) : Option (List Char × Data) :=
+  partial def decodeDataLoop (s : List UInt8) : Option (List UInt8 × Data) :=
     match decodeAlternative decodeIndef decodeHead s with
-    | .some (_ , .inl 2     ) => Prod.map String.data (.B ∘ ByteString.mk) <$> decodeBytestring ⟨s⟩
-    | .some (s', .inl 4     ) => Prod.map id          .List                <$> decodeListIndef s'
+    | .some (_ , .inl 2     ) => Prod.map id (.B ∘ bytesToByteString) <$> decodeBytestringL s
+    | .some (s', .inl 4     ) => Prod.map id .List                    <$> decodeListIndef s'
     | .some (_ , .inr (0, _))
     | .some (_ , .inr (1, _))
     | .some (_ , .inr (6, 2))
-    | .some (_ , .inr (6, 3)) => Prod.map String.data .I                   <$> decodeInt ⟨s⟩
-    | .some (_ , .inr (2, _)) => Prod.map String.data (.B ∘ ByteString.mk) <$> decodeBytestring ⟨s⟩
-    | .some (s', .inr (4, n)) => Prod.map id          .List                <$> decodeList n s'
-    | .some (s', .inr (5, n)) => Prod.map id          .Map                 <$> decodePairList n s'
-    | .some (_ , .inr (6, _)) =>                                               decodeConstr s
+    | .some (_ , .inr (6, 3)) => Prod.map id .I                       <$> decodeIntL s
+    | .some (_ , .inr (2, _)) => Prod.map id (.B ∘ bytesToByteString) <$> decodeBytestringL s
+    | .some (s', .inr (4, n)) => Prod.map id .List                    <$> decodeList n s'
+    | .some (s', .inr (5, n)) => Prod.map id .Map                     <$> decodePairList n s'
+    | .some (_ , .inr (6, _)) =>                                          decodeConstr s
     | _ => .none
 
   -- Decode a fixed-length list of Data values
-  partial def decodeList : Nat → List Char → Option (List Char × List Data)
+  partial def decodeList : Nat → List UInt8 → Option (List UInt8 × List Data)
     | .zero  , s => .some (s, [])
     | .succ p, s => match decodeDataLoop s with
         | some (s', d) => match decodeList p s' with
@@ -721,8 +733,8 @@ mutual
         | none => none
 
   -- Decode an indefinite-length list of Data values
-  partial def decodeListIndef : List Char → Option (List Char × List Data)
-    | '\xFF' :: s' => .some (s', [])
+  partial def decodeListIndef : List UInt8 → Option (List UInt8 × List Data)
+    | 0xFF :: s' => .some (s', [])
     | s            => match decodeDataLoop s with
         | some (s', d) => match decodeListIndef s' with
             | some (s'', l) => some (s'', d :: l)
@@ -730,7 +742,7 @@ mutual
         | none => none
 
   -- Decode a fixed-length list of Data pairs (for Map)
-  partial def decodePairList : Nat → List Char → Option (List Char × List (Data × Data))
+  partial def decodePairList : Nat → List UInt8 → Option (List UInt8 × List (Data × Data))
     | .zero  , s => .some (s, [])
     | .succ p, s => match decodeDataLoop s with
         | some (s', k) => match decodeDataLoop s' with
@@ -741,7 +753,7 @@ mutual
         | none => none
 
   -- Decode a constructor (Constr tag + list of Data values)
-  partial def decodeConstr (s : List Char) : Option (List Char × Data) :=
+  partial def decodeConstr (s : List UInt8) : Option (List UInt8 × Data) :=
     match decodeCtag s with
     | some (s', i) => match decodeAlternative decodeIndef decodeHead s' with
         | some (s'', r) => match r with
@@ -752,10 +764,10 @@ mutual
     | none => none
 end
 
-/- Decodes a builtin data from input `s`. -/
+/- Decodes a builtin data from input `b`. -/
 -- Spec B.7. D_data
-def decodeData (s : String) : Option (String × Data) :=
-  Prod.map String.mk id <$> decodeDataLoop s.data
+def decodeData (b : ByteArray) : Option (ByteArray × Data) :=
+  (decodeDataLoop b.toList).map (fun (rem, d) => (rem.toByteArray, d))
 
 end CborInternal
 
@@ -765,6 +777,8 @@ export CborInternal
     encodeInt
     encodeData
     -- decoding
+    bytesToByteString
+    byteArrayToByteString
     decodeBytestring
     decodeLargeBytestring
     decodeInt
