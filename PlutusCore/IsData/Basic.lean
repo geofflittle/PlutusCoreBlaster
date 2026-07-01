@@ -37,6 +37,12 @@ instance : IsData Unit where
   toData   _ := Data.Constr 0 []
   fromData | Data.Constr 0 [] => some () | _ => none
 
+/-- On-chain `Data` has no text type; a schema `#string` field is carried as a
+    `ByteString` payload (mirroring how `ByteString` already wraps a `String`). -/
+instance : IsData String where
+  toData   s := Data.B { data := s }
+  fromData | Data.B b => some b.data | _ => none
+
 instance [IsData α] : IsData (Option α) where
   toData | none   => Data.Constr 1 []
          | some x => Data.Constr 0 [IsData.toData x]

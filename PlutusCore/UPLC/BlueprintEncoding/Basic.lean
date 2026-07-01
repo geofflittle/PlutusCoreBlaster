@@ -47,6 +47,8 @@ inductive PlutusType where
                (fields : List (Option String × PlutusType))                       : PlutusType
   /-- Sum type. -/
   | anyOf      (variants : List PlutusType)                                       : PlutusType
+  /-- A reference to a named definition emitted as its own Lean type. -/
+  | named      (name : String)                                                    : PlutusType
   | opaque     (name : String)                                                    : PlutusType
   deriving Repr, Inhabited
 
@@ -105,6 +107,9 @@ structure BlueprintValidator where
 structure Blueprint where
   preamble   : BlueprintPreamble
   validators : Array BlueprintValidator
+  /-- Every nameable definition (record / enum / sum-of-products), as
+      `(type name, parsed structure)`, for emitting standalone Lean types. -/
+  namedTypes : List (String × PlutusType) := []
 
 -- ---------------------------------------------------------------------------
 -- JSON helpers
@@ -129,6 +134,17 @@ private def decodeJsonPointer (s : String) : String :=
 -- Schema / PlutusType parsing
 -- ---------------------------------------------------------------------------
 
+/-- A definition is "nameable" — worth emitting as its own Lean type — when it
+    is a sum type (`anyOf`/`oneOf`) or a single constructor (record). -/
+private def isNameableDef (defn : Lean.Json) : Bool :=
+  (defn.getObjVal? "anyOf" |>.toOption.isSome) ||
+  (defn.getObjVal? "oneOf" |>.toOption.isSome) ||
+  (match defn.getObjVal? "dataType" with | .ok (.str "constructor") => true | _ => false)
+
+/-- The Lean-facing name of a definition: its `title`, falling back to the key. -/
+private def defTypeName (key : String) (defn : Lean.Json) : String :=
+  (getOptStr defn "title").getD key
+
 private partial def parseSchemaType (defs : Lean.Json) (j : Lean.Json) (depth : Nat) : PlutusType :=
   if depth == 0 then .opaque "<max depth>" else
   match j.getObjVal? "$ref" with
@@ -138,7 +154,10 @@ private partial def parseSchemaType (defs : Lean.Json) (j : Lean.Json) (depth : 
                  then decodeJsonPointer (ref.drop defsPrefix.length)
                  else ref
     match defs.getObjVal? key with
-    | .ok defn => parseSchemaType defs defn (depth - 1)
+    -- Preserve the name of nameable definitions so they can reference an
+    -- emitted Lean type instead of inlining (and collapsing to `Data`).
+    | .ok defn => if isNameableDef defn then .named (defTypeName key defn)
+                  else parseSchemaType defs defn (depth - 1)
     | _        => .opaque key
   | _ =>
   let anyOneOf := match j.getObjVal? "anyOf" with
@@ -254,10 +273,78 @@ def parseBlueprint (s : String) : Except String Blueprint := do
     | .ok (.arr arr) => arr.mapM (parseValidator defs)
     | .ok _          => .error "'validators' must be an array"
     | .error e       => .error s!"missing 'validators': {e}"
-  return { preamble, validators }
+  -- Collect every nameable definition so it can be emitted as a Lean type.
+  let namedTypes : List (String × PlutusType) :=
+    match defs with
+    | .obj o => o.foldl (init := []) (fun acc key defn =>
+        if isNameableDef defn then (defTypeName key defn, parseSchemaType defs defn 20) :: acc
+        else acc)
+    | _ => []
+  return { preamble, validators, namedTypes }
 
 def sanitizeName (s : String) : String :=
   String.mk <| s.data.map fun c => if c.isAlphanum || c == '_' then c else '_'
+
+/-- Lean 4 reserved words that a sanitized schema name might collide with. -/
+private def leanKeywords : List String :=
+  ["end", "type", "class", "structure", "inductive", "instance", "def", "theorem",
+   "example", "abbrev", "do", "by", "match", "with", "where", "deriving", "then",
+   "else", "fun", "let", "if", "open", "namespace", "section", "variable", "in",
+   "at", "from", "import", "return", "try", "catch", "finally", "for", "while",
+   "have", "show", "calc", "mutual", "partial", "private", "protected", "macro",
+   "syntax", "notation", "attribute", "set_option", "extends", "sorry", "nomatch"]
+
+/-- Wrap an identifier in `«…»` when it is a Lean keyword or starts with a digit,
+    so the *generated source* parses. The underlying declaration `Name` (built
+    with `Name.mkStr` from the raw sanitized string) is unchanged. -/
+private def escapeIdent (s : String) : String :=
+  let leadingDigit := (s.get? ⟨0⟩).map Char.isDigit |>.getD false
+  if leanKeywords.contains s || leadingDigit then "«" ++ s ++ "»" else s
+
+/-- A field type "degrades to `Data`" when it contains a constructor/sum/opaque
+    node the emitter cannot express as a structured Lean type (so it falls back
+    to raw `Data`). Used to warn instead of silently dropping structure. -/
+private partial def degradesToData : PlutusType → Bool
+  | .constr .. | .anyOf .. | .opaque .. => true
+  | .named _  => false
+  | .list t   => degradesToData t
+  | .map k v  => degradesToData k || degradesToData v
+  | .pair a b => degradesToData a || degradesToData b
+  | _         => false
+
+/-- All named-type references occurring anywhere in a `PlutusType`. -/
+private partial def collectNamedRefs : PlutusType → List String
+  | .named n           => [n]
+  | .list t            => collectNamedRefs t
+  | .map k v           => collectNamedRefs k ++ collectNamedRefs v
+  | .pair a b          => collectNamedRefs a ++ collectNamedRefs b
+  | .anyOf vs          => vs.flatMap collectNamedRefs
+  | .constr _ _ fields => fields.flatMap (fun (_, t) => collectNamedRefs t)
+  | _                  => []
+
+/-- Order named-type definitions so each type's dependencies come first.
+    Returns `(orderedEmittable, droppedNames)`; a type is dropped when it takes
+    part in a reference cycle (self-recursion or mutual recursion), together
+    with everything transitively depending on it. -/
+private partial def topoOrderTypes
+    (items : List (String × String × PlutusType)) :
+    List (String × String × PlutusType) × List String :=
+  let rec go (remaining : List (String × String × PlutusType))
+             (done : List String) (acc : List (String × String × PlutusType)) :=
+    match remaining with
+    | [] => (acc, [])
+    | _ =>
+      let ready := remaining.filter fun (sname, _, pt) =>
+        (collectNamedRefs pt).all fun r =>
+          let rs := sanitizeName r
+          rs == sname || done.contains rs
+      if ready.isEmpty then
+        (acc, remaining.map (·.1))
+      else
+        let readyNames := ready.map (·.1)
+        let notReady := remaining.filter fun it => !readyNames.contains it.1
+        go notReady (done ++ readyNames) (acc ++ ready)
+  go items [] []
 
 def plutusVersionToLangExpr (v : String) : Except String Expr :=
   match v with
@@ -297,6 +384,7 @@ mutual
     | .list items => mkApp (.const ``PlutusType.list []) (buildPlutusTypeExpr items)
     | .map k v    => mkApp2 (.const ``PlutusType.map  []) (buildPlutusTypeExpr k) (buildPlutusTypeExpr v)
     | .pair l r   => mkApp2 (.const ``PlutusType.pair []) (buildPlutusTypeExpr l) (buildPlutusTypeExpr r)
+    | .named n    => mkApp  (.const ``PlutusType.named  []) (mkStrLit n)
     | .anyOf vs   => mkApp  (.const ``PlutusType.anyOf  []) (buildPTListExpr vs)
     | .constr t i fs =>
         mkAppN (.const ``PlutusType.constr [])
@@ -381,25 +469,42 @@ private partial def plutusTypeToTypeStr : PlutusType → String
   | .list t     => "(List " ++ plutusTypeToTypeStr t ++ ")"
   | .pair a b   => "(" ++ plutusTypeToTypeStr a ++ " × " ++ plutusTypeToTypeStr b ++ ")"
   | .map k v    => "(List (" ++ plutusTypeToTypeStr k ++ " × " ++ plutusTypeToTypeStr v ++ "))"
+  | .named n    => escapeIdent (sanitizeName n)
   | _           => "Data"
 
-/-- Generate a Lean expression string that encodes `fieldExpr` as `Data`. -/
-private def encodeFieldStr (fieldExpr : String) : PlutusType → String
+/-- Generate a Lean expression string that encodes `fieldExpr` as `Data`.
+    Recurses through `list`/`map`/`pair` so a `map` at any depth targets the
+    dedicated `Data.Map` shape rather than the generic `List`-of-`Constr`. -/
+private partial def encodeFieldStr (fieldExpr : String) : PlutusType → String
   | .integer    => "Data.I (" ++ fieldExpr ++ ")"
   | .bytestring => "Data.B (" ++ fieldExpr ++ ")"
+  | .string     => "Data.B { data := (" ++ fieldExpr ++ ") }"
   | .bool       => "if (" ++ fieldExpr ++ ") then Data.Constr 1 [] else Data.Constr 0 []"
   | .unit | .void => "Data.Constr 0 []"
   | .data       => "(" ++ fieldExpr ++ ")"
+  | .list t     =>
+      "Data.List ((" ++ fieldExpr ++ ").map (fun _x => " ++ encodeFieldStr "_x" t ++ "))"
+  | .map k v    =>
+      "Data.Map ((" ++ fieldExpr ++ ").map (fun (_a, _b) => (" ++
+        encodeFieldStr "_a" k ++ ", " ++ encodeFieldStr "_b" v ++ ")))"
   | _           => "IsData.toData (" ++ fieldExpr ++ ")"
 
 /-- Generate a Lean expression string that decodes a `Data` value.
     Produces `Option T` where `T = plutusTypeToTypeStr ftype`. -/
-private def decodeFieldStr (dataExpr : String) : PlutusType → String
+private partial def decodeFieldStr (dataExpr : String) : PlutusType → String
   | .integer    => "(match " ++ dataExpr ++ " with | Data.I _x => some _x | _ => none)"
   | .bytestring => "(match " ++ dataExpr ++ " with | Data.B _x => some _x | _ => none)"
+  | .string     => "(match " ++ dataExpr ++ " with | Data.B _x => some _x.data | _ => none)"
   | .bool       => "(match " ++ dataExpr ++ " with | Data.Constr 0 [] => some false | Data.Constr 1 [] => some true | _ => none)"
   | .unit | .void => "(match " ++ dataExpr ++ " with | Data.Constr 0 [] => some () | _ => none)"
   | .data       => "(some " ++ dataExpr ++ ")"
+  | .list t     =>
+      "(match " ++ dataExpr ++ " with | Data.List _xs => _xs.mapM (fun _x => " ++
+        decodeFieldStr "_x" t ++ ") | _ => none)"
+  | .map k v    =>
+      "(match " ++ dataExpr ++ " with | Data.Map _m => _m.mapM (fun (_a, _b) => (" ++
+        decodeFieldStr "_a" k ++ ").bind (fun _k => (" ++ decodeFieldStr "_b" v ++
+        ").bind (fun _v => some (_k, _v)))) | _ => none)"
   | t           => "(IsData.fromData " ++ dataExpr ++ " : Option " ++ plutusTypeToTypeStr t ++ ")"
 
 /-- Returns `true` when every variant is a no-field constructor (simple enum). -/
@@ -445,20 +550,25 @@ private def emitEnumType (ns : Name) (typeName : String)
     | .constr (some t) idx [] => some (sanitizeName t, idx)
     | _ => none
   if constrs.isEmpty then return
+  -- Warn if the simple-enum check accepted a variant we cannot name/emit.
+  if constrs.length != variants.length then
+    logWarning s!"Blueprint: enum '{typeName}' has {variants.length - constrs.length} unnamed no-field \
+variant(s) that were dropped from the generated inductive."
 
-  let ctorLines := constrs.foldl (fun acc (cname, _) => acc ++ "  | " ++ cname ++ "\n") ""
+  let esc := escapeIdent shortName
+  let ctorLines := constrs.foldl (fun acc (cname, _) => acc ++ "  | " ++ escapeIdent cname ++ "\n") ""
   let toArms := constrs.foldl (fun acc (cname, idx) =>
-    acc ++ "    | ." ++ cname ++ " => Data.Constr " ++ toString idx ++ " []\n") ""
+    acc ++ "    | ." ++ escapeIdent cname ++ " => Data.Constr " ++ toString idx ++ " []\n") ""
   let fromArms := constrs.foldl (fun acc (cname, idx) =>
-    acc ++ "    | Data.Constr " ++ toString idx ++ " [] => some (" ++ shortName ++ "." ++ cname ++ ")\n") ""
+    acc ++ "    | Data.Constr " ++ toString idx ++ " [] => some (" ++ esc ++ "." ++ escapeIdent cname ++ ")\n") ""
 
   withTempNamespace ns do
     -- Bring PlutusCore short names into scope for the declarations below
     elabCommand (← parseCommand openDecl)
     elabCommand (← parseCommand (
-      "inductive " ++ shortName ++ " where\n" ++ ctorLines ++ "  deriving Repr"))
+      "inductive " ++ esc ++ " where\n" ++ ctorLines ++ "  deriving Repr"))
     elabCommand (← parseCommand (
-      "instance : IsData " ++ shortName ++ " where\n" ++
+      "instance : IsData " ++ esc ++ " where\n" ++
       "  toData x := match x with\n" ++ toArms ++
       "  fromData x := match x with\n" ++ fromArms ++
       "    | _ => none"))
@@ -473,16 +583,29 @@ private def emitStructType (ns : Name) (typeName : String) (idx : Nat)
   if shortName.isEmpty then return
   -- Only generate when every field has a name
   let namedFields := fields.filterMap fun (mname, pt) => mname.map (·, pt)
-  if namedFields.length != fields.length || namedFields.isEmpty then return
+  -- Positional (unnamed) fields can't become a Lean record: warn and skip.
+  if namedFields.length != fields.length then
+    logWarning s!"Blueprint: record '{typeName}' has positional (unnamed) fields; \
+no Lean type emitted (the slot stays raw Data)."
+    return
+  -- A genuinely empty constructor (Unit/Void) needs no Lean type — skip quietly.
+  if namedFields.isEmpty then return
   -- Skip if already defined
   if (← getEnv).find? (Name.mkStr ns shortName) |>.isSome then return
 
+  -- Warn for every field that could not be given a structured type.
+  for (fname, ftype) in namedFields do
+    if degradesToData ftype then
+      logWarning s!"Blueprint: field '{fname}' of '{typeName}' contains a \
+sum-of-products / nested record not yet emitted; typed as Data."
+
+  let esc := escapeIdent shortName
   let fieldLines := namedFields.foldl (fun acc (fname, ftype) =>
-    acc ++ "  " ++ sanitizeName fname ++ " : " ++ plutusTypeToTypeStr ftype ++ "\n") ""
+    acc ++ "  " ++ escapeIdent (sanitizeName fname) ++ " : " ++ plutusTypeToTypeStr ftype ++ "\n") ""
 
   -- toData body using short names from openDecl
   let encLines := namedFields.map fun (fname, ftype) =>
-    encodeFieldStr ("d." ++ sanitizeName fname) ftype
+    encodeFieldStr ("d." ++ escapeIdent (sanitizeName fname)) ftype
   let toDataBody :=
     "Data.Constr " ++ toString idx ++
     " [" ++ String.intercalate ", " encLines ++ "]"
@@ -495,11 +618,11 @@ private def emitStructType (ns : Name) (typeName : String) (idx : Nat)
   -- Build bind chain from right (innermost) to left (outermost)
   let fieldsWithIdx := (List.range namedFields.length).zip namedFields
   let innermost :=
-    "some (" ++ shortName ++ ".mk " ++
-    String.intercalate " " (namedFields.map (sanitizeName ∘ Prod.fst)) ++ ")"
+    "some (" ++ esc ++ ".mk " ++
+    String.intercalate " " (namedFields.map (escapeIdent ∘ sanitizeName ∘ Prod.fst)) ++ ")"
   let chain := fieldsWithIdx.reverse.foldl
     (fun acc (i, fname, ftype) =>
-      "(" ++ decodeFieldStr ("_v" ++ toString i) ftype ++ ").bind (fun " ++ sanitizeName fname ++ " => " ++ acc ++ ")")
+      "(" ++ decodeFieldStr ("_v" ++ toString i) ftype ++ ").bind (fun " ++ escapeIdent (sanitizeName fname) ++ " => " ++ acc ++ ")")
     innermost
 
   let fromDataBody :=
@@ -510,30 +633,86 @@ private def emitStructType (ns : Name) (typeName : String) (idx : Nat)
     -- Bring PlutusCore short names into scope for the declarations below
     elabCommand (← parseCommand openDecl)
     elabCommand (← parseCommand (
-      "structure " ++ shortName ++ " where\n" ++ fieldLines ++ "  deriving Repr"))
+      "structure " ++ esc ++ " where\n" ++ fieldLines ++ "  deriving Repr"))
     elabCommand (← parseCommand (
-      "instance : IsData " ++ shortName ++ " where\n" ++
+      "instance : IsData " ++ esc ++ " where\n" ++
       "  toData d := " ++ toDataBody ++ "\n" ++
       "  fromData x := match x with\n" ++
       "        " ++ fromDataBody))
 
 -- ---------------------------------------------------------------------------
--- Dispatch: choose which generator to call for a given SchemaInfo.
+-- Emit a sum-of-products inductive (anyOf with fielded constructors) + IsData.
 -- ---------------------------------------------------------------------------
 
-/-- Attempt to emit a Lean type + `IsData` instance for a schema slot.
-    Silently skips schemas that can't be expressed. -/
+private def emitSopType (ns : Name) (typeName : String)
+    (variants : List PlutusType) : CommandElabM Unit := do
+  let shortName := sanitizeName typeName
+  if shortName.isEmpty then return
+  if (← getEnv).find? (Name.mkStr ns shortName) |>.isSome then return
+  -- Each variant must be a named constructor; keep (ctorName, index, fieldTypes).
+  let ctors : List (String × Nat × List PlutusType) := variants.filterMap fun
+    | .constr (some t) idx fields => some (sanitizeName t, idx, fields.map (·.2))
+    | _ => none
+  if ctors.length != variants.length then
+    logWarning s!"Blueprint: sum type '{typeName}' has variants that are not named \
+constructors; no Lean type emitted (the slot stays raw Data)."
+    return
+
+  let esc := escapeIdent shortName
+  -- Per-constructor: field binders, encode list, decode bind-chain.
+  let ctorDecls := ctors.foldl (fun acc (cname, _, ftypes) =>
+    let binders := (List.range ftypes.length).foldl (fun b j =>
+      b ++ " (_f" ++ toString j ++ " : " ++ plutusTypeToTypeStr ftypes[j]! ++ ")") ""
+    acc ++ "  | " ++ escapeIdent cname ++ binders ++ "\n") ""
+  let toArms := ctors.foldl (fun acc (cname, idx, ftypes) =>
+    let vars := (List.range ftypes.length).foldl (fun b j => b ++ " _f" ++ toString j) ""
+    let encs := (List.range ftypes.length).map fun j => encodeFieldStr ("_f" ++ toString j) ftypes[j]!
+    acc ++ "    | ." ++ escapeIdent cname ++ vars ++ " => Data.Constr " ++ toString idx ++
+      " [" ++ String.intercalate ", " encs ++ "]\n") ""
+  let fromArms := ctors.foldl (fun acc (cname, idx, ftypes) =>
+    let n := ftypes.length
+    let patVars := "[" ++ String.intercalate ", " ((List.range n).map (fun j => "_v" ++ toString j)) ++ "]"
+    let ctorApp := "some (." ++ escapeIdent cname ++
+      (List.range n).foldl (fun b j => b ++ " _f" ++ toString j) "" ++ ")"
+    let chain := (List.range n).reverse.foldl (fun inner j =>
+      "(" ++ decodeFieldStr ("_v" ++ toString j) ftypes[j]! ++ ").bind (fun _f" ++ toString j ++ " => " ++ inner ++ ")")
+      ctorApp
+    acc ++ "    | Data.Constr " ++ toString idx ++ " " ++ patVars ++ " => " ++ chain ++ "\n") ""
+
+  withTempNamespace ns do
+    elabCommand (← parseCommand openDecl)
+    elabCommand (← parseCommand (
+      "inductive " ++ esc ++ " where\n" ++ ctorDecls ++ "  deriving Repr"))
+    elabCommand (← parseCommand (
+      "instance : IsData " ++ esc ++ " where\n" ++
+      "  toData x := match x with\n" ++ toArms ++
+      "  fromData x := match x with\n" ++ fromArms ++
+      "    | _ => none"))
+
+-- ---------------------------------------------------------------------------
+-- Dispatch: choose which generator to call for a given type / schema slot.
+-- ---------------------------------------------------------------------------
+
+/-- Emit a Lean type + `IsData` instance for one named definition or inline slot. -/
+private def emitNamedType (ns : Name) (typeName : String) (pt : PlutusType) : CommandElabM Unit := do
+  match pt with
+  | .anyOf variants =>
+    if isSimpleEnum variants then emitEnumType ns typeName variants
+    else emitSopType ns typeName variants
+  | .constr _ _ [] => return          -- Unit/Void-like: no Lean type needed
+  | .constr _ idx fields =>
+    -- Named-field record → structure; positional fields → single-ctor inductive.
+    if fields.all (·.1.isSome) then emitStructType ns typeName idx fields
+    else emitSopType ns typeName [pt]
+  | _ => return
+
+/-- Emit the type for a datum/redeemer/parameter slot. `.named` slots are
+    already produced by the named-definitions pass, so they are skipped here. -/
 private def tryEmitSchemaType (ns : Name) (si : SchemaInfo) : CommandElabM Unit := do
   let some typeName := si.typeName | return
   match si.ptype with
-  | .anyOf variants =>
-    if isSimpleEnum variants then
-      emitEnumType ns typeName variants
-  | .constr (some cTitle) idx fields =>
-    emitStructType ns cTitle idx fields
-  | .constr none idx fields =>
-    emitStructType ns typeName idx fields
-  | _ => return
+  | .named _ => return
+  | pt => emitNamedType ns typeName pt
 
 end Internal
 
@@ -573,10 +752,23 @@ def importBlueprintsImpl : CommandElab := fun stx => do
     | .ok e    => pure e
     | .error e => throwError e
 
+  -- Emit a standalone Lean type + IsData instance for every nameable
+  -- definition, dependencies first so nested references resolve.
+  let itemsRaw := blueprint.namedTypes.map fun (tn, pt) => (sanitizeName tn, tn, pt)
+  let items := itemsRaw.foldl (fun acc it =>
+    if acc.any (·.1 == it.1) then acc else acc ++ [it]) []
+  let (ordered, dropped) := topoOrderTypes items
+  for nm in dropped do
+    logWarning s!"Blueprint: type '{nm}' is part of a reference cycle (recursive type); \
+no Lean type emitted (references to it stay raw Data)."
+  for (_, tn, pt) in ordered do
+    emitNamedType ns tn pt
+
   let mut viExprs : Array Expr := #[]
 
   for validator in blueprint.validators do
-    -- Emit Lean types + IsData instances for datum / redeemer / parameters
+    -- Emit Lean types for any inline datum / redeemer / parameter slots
+    -- (named slots were already produced by the pass above).
     if let some si := validator.datum    then tryEmitSchemaType ns si
     if let some si := validator.redeemer then tryEmitSchemaType ns si
     for si in validator.parameters do      tryEmitSchemaType ns si
