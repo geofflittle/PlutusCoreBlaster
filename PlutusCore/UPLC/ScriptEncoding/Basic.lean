@@ -307,9 +307,13 @@ def importUplcImp : CommandElab := fun stx => do
 end Internal
 
 export Internal
-  ( singleCborEncodedScriptFromHex!
+  ( singleCborEncodedScriptFromHex?
+    singleCborEncodedScriptFromHex!
+    doubleCborEncodedScriptFromHex?
     doubleCborEncodedScriptFromHex!
+    flatEncodedScriptFromBytestring?
     flatEncodedScriptFromBytestring!
+    flatEncodedScriptFromHex?
     flatEncodedScriptFromHex!
   )
 
