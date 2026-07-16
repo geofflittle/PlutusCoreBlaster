@@ -18,7 +18,7 @@ open CekValue
 def ifThenElse (Vs : List CekValue) : Option CekValue :=
   match Vs with
   | [caseFalse, caseTrue, CekValue.VCon (Const.Bool b)] =>
-        some (PLC.ifThenElse b caseTrue caseFalse)
+        PLC.ifThenElse b (some caseTrue) (some caseFalse)
   | _ => none
 
 end PlutusCore.UPLC.BuiltinFunctions.Bool

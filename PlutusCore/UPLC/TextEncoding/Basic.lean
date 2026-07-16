@@ -522,37 +522,41 @@ def parseCon : Parser Const := do
 -- ---------------------------------------------------------------------------
 
 mutual
-  /-- Parse a UPLC `Term`. -/
+  /-- Parse a UPLC `Term`.
+      `ctx` is the stack of binder names in scope, innermost first; variable
+      names are resolved to de Bruijn indices against it at parse time. An
+      unbound name resolves to the out-of-range index `ctx.length`, so open
+      terms parse successfully and fail at evaluation (as in plutus-core). -/
   -- Dispatch on the first non-whitespace character to avoid peek lookup issues.
-  partial def parseTerm (v : Version) : Parser Term := fun s =>
+  partial def parseTerm (v : Version) (ctx : List String) : Parser Term := fun s =>
     match (ws : Parser Unit) s with
     | .error e => .error e
     | .ok (_, s') =>
       if s'.pos == s'.input.endPos then
         .error { message := "expected term, got end of input", pos := s'.pos }
       else match s'.input.get s'.pos with
-        | '[' => parseApply v s'
-        | '(' => parseParenTerm v s'
-        | _   => parseVar s'
+        | '[' => parseApply v ctx s'
+        | '(' => parseParenTerm v ctx s'
+        | _   => parseVar ctx s'
 
   /-- `[t0 t1 … tn]` - multi-application, left-associative,
                         a minimum of two expressions must be present
       `[f x y z]` desugars to `Apply (Apply (Apply f x) y) z`. -/
-  partial def parseApply (v : Version) : Parser Term :=
+  partial def parseApply (v : Version) (ctx : List String) : Parser Term :=
     brackets do
-      let t0 ← parseTerm v
-      let ts ← many1 (parseTerm v)
+      let t0 ← parseTerm v ctx
+      let ts ← many1 (parseTerm v ctx)
       return ts.foldl .Apply t0
 
   /-- `(keyword ...)` - dispatches on the keyword. -/
-  partial def parseParenTerm (v : Version) : Parser Term :=
+  partial def parseParenTerm (v : Version) (ctx : List String) : Parser Term :=
     parens do
       let kw ← identifier
       ws
       match kw with
       | "lam"     =>
           let name ← varName
-          let body ← parseTerm v
+          let body ← parseTerm v (name :: ctx)
           return .Lam name body
       | "con"     => .Const   <$> parseCon
       | "builtin" => .Builtin <$> parseBuiltinFun
@@ -560,20 +564,21 @@ mutual
           if v < .Version 1 1 0 then fail "'constr' can't be used before 1.1.0"
           let tag  ← nat
           if 18446744073709551616 ≤ tag then fail "tag cannot exceed 2^64 - 1"
-          let args ← many (parseTerm v)
+          let args ← many (parseTerm v ctx)
           return .Constr tag args
       | "case"    =>
           if v < .Version 1 1 0 then fail "'case' can't be used before 1.1.0"
-          let scrut ← parseTerm v
-          let alts  ← many (parseTerm v)
+          let scrut ← parseTerm v ctx
+          let alts  ← many (parseTerm v ctx)
           return .Case scrut alts
-      | "delay"   => .Delay <$> parseTerm v
-      | "force"   => .Force <$> parseTerm v
+      | "delay"   => .Delay <$> parseTerm v ctx
+      | "force"   => .Force <$> parseTerm v ctx
       | "error"   => return .Error
       | other     => fail s!"unknown term keyword '{other}'"
 
-  /-- A bare identifier is a variable. -/
-  partial def parseVar : Parser Term := .Var <$> varName
+  /-- A bare identifier is a variable, resolved to its de Bruijn index. -/
+  partial def parseVar (ctx : List String) : Parser Term :=
+    (fun name => .Var (ctx.idxOf name)) <$> varName
 
 end
 
@@ -593,7 +598,7 @@ def parseProgram : Parser Program :=
     _ ← char '.'
     let patch ← nat
     let v := .Version major minor patch
-    let t ← parseTerm v
+    let t ← parseTerm v []
     return .Program v t
 
 -- ---------------------------------------------------------------------------
@@ -602,13 +607,13 @@ def parseProgram : Parser Program :=
 
 /-- Parse a UPLC `Term` from a string, with a human-readable error on failure. -/
 def termFromString (v : Version) (s : String) : Except String Term :=
-  match run (parseTerm v) s with
+  match run (parseTerm v []) s with
   | .ok p    => .ok p
   | .error e => .error s!"parse error at byte {e.pos.byteIdx}: {e.message}"
 
 /-- Parse a UPLC `Term` from a string, returning `none` on failure. -/
 def termFromString? (v : Version) (s : String) : Option Term :=
-  runOption (parseTerm v) s
+  runOption (parseTerm v []) s
 
 /-- Parse a UPLC `Program` from a string, with a human-readable error on failure. -/
 def programFromString (s : String) : Except String Program :=

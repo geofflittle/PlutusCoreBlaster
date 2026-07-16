@@ -86,37 +86,46 @@ def bData (Vs : List CekValue) : Option CekValue :=
 def unConstrData (Vs : List CekValue) : Option CekValue :=
   match Vs with
   | [CekValue.VCon (Const.Data d)] =>
-      tryCatchSome (PLC.unConstrData d)
-      (fun (i, xs) =>
-        CekValue.VCon (Const.Pair ((Const.Integer i), Const.ConstDataList xs)))
+        match d with
+        | .Constr idx fields =>
+            some (CekValue.VCon (Const.Pair ((Const.Integer idx), Const.ConstDataList fields)))
+        | _ => none
   | _ => none
 
 -- Define unMapData
 def unMapData (Vs : List CekValue) : Option CekValue :=
   match Vs with
   | [CekValue.VCon (Const.Data d)] =>
-      tryCatchSome (PLC.unMapData d) (CekValue.VCon ∘ Const.ConstPairDataList)
+       match d with
+       | .Map map => some (CekValue.VCon (Const.ConstPairDataList map))
+       | _ => none
   | _ => none
 
 -- Define unListData
 def unListData (Vs : List CekValue) : Option CekValue :=
   match Vs with
   | [CekValue.VCon (Const.Data d)] =>
-      tryCatchSome (PLC.unListData d) (CekValue.VCon ∘ Const.ConstDataList)
+        match d with
+        | .List xs => some (CekValue.VCon (Const.ConstDataList xs))
+        | _ => none
   | _ => none
 
 -- Define unIData
 def unIData (Vs : List CekValue) : Option CekValue :=
   match Vs with
   | [CekValue.VCon (Const.Data d)] =>
-      tryCatchSome (PLC.unIData d) (CekValue.VCon ∘ Const.Integer)
+        match d with
+        | .I i => some (CekValue.VCon (Const.Integer i))
+        | _ => none
   | _ => none
 
 -- Define unBData
 def unBData (Vs : List CekValue) : Option CekValue :=
   match Vs with
   | [CekValue.VCon (Const.Data d)] =>
-      tryCatchSome (PLC.unBData d) (CekValue.VCon ∘ Const.ByteString)
+        match d with
+        | .B bs => some (CekValue.VCon (Const.ByteString bs))
+        | _ => none
   | _ => none
 
 

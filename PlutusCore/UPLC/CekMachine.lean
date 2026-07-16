@@ -47,24 +47,6 @@ inductive EvaluationResult where
     | EvaluationError : EvaluationResult
 deriving Repr
 
--- Define Helper Functions
--- Define ifBoundOtherwiseError
-def ifBoundOtherwiseError (s : Stack) (p : Environment) (x : String) : State :=
-  match p with
-  | .EmptyEnvironment => State.Error
-  | .NonEmptyEnvironment p' x' V =>
-      if x = x' then State.Return s V else ifBoundOtherwiseError s p' x
-
--- Define ifArgVOtherwiseError
-def ifArgVOtherwiseError (Sigma : State) (l : ExpectedBuiltinArg) : State :=
-  match l with
-  | ExpectedBuiltinArg.ArgV => Sigma
-  | ExpectedBuiltinArg.ArgQ => State.Error
-
-def ifArgQOtherwiseError (Sigma : State) (l : ExpectedBuiltinArg) : State :=
-  match l with
-  | ExpectedBuiltinArg.ArgQ => Sigma
-  | ExpectedBuiltinArg.ArgV => State.Error
 
 def evalBuiltin (semanticsVariant : BuiltinSemanticsVariant) (s : Stack) (b : BuiltinFun) (Vs : List CekValue) : State :=
   match evaluateBuiltinFunction semanticsVariant b Vs with
@@ -77,158 +59,163 @@ open BuiltinNotations
 
 def step (semanticsVariant : BuiltinSemanticsVariant) (Sigma : State) : State :=
   match Sigma with
-  | State.Eval s ρ (Term.Var x) =>
-      ifBoundOtherwiseError s ρ x
-  | State.Eval s ρ (Term.Term.Const c) =>
-      State.Return s (CekValue.VCon c)
-  | State.Eval s ρ (Term.Lam x M) =>
-      State.Return s (CekValue.VLam x M ρ)
-  | State.Eval s ρ (Term.Delay M) =>
-      State.Return s (CekValue.VDelay M ρ)
-  | State.Eval s ρ (Term.Force M) =>
-      State.Eval (Frame.ForceFrame :: s) ρ M
-  | State.Eval s ρ (Term.Apply M N) =>
-      State.Eval (Frame.LeftApplicationToTerm N ρ :: s) ρ M
-  | State.Eval s ρ (Term.Constr i (M :: Ms)) =>
-      State.Eval (Frame.ConstructorArgument i [] Ms ρ :: s) ρ M
-  | State.Eval s ρ (Term.Constr i []) =>
-      State.Return s (CekValue.VConstr i [])
-  | State.Eval s ρ (Term.Case N Ms) =>
-      State.Eval (Frame.CaseScrutinee Ms ρ :: s) ρ N
-  | State.Eval s ρ (Term.Builtin b) =>
-      State.Return s (CekValue.VBuiltin b [] (α(b)))
-  | State.Eval s ρ Term.Error =>
-      State.Error
-  | State.Return [] V =>
-      State.Halt V
-  | State.Return (Frame.LeftApplicationToTerm M ρ :: s) V =>
-      State.Eval (Frame.RightApplicationOfValue V :: s) ρ M
-  | State.Return (Frame.RightApplicationOfValue (CekValue.VLam x M ρ) :: s) V =>
-      State.Eval s (.NonEmptyEnvironment ρ x V) M
-  | State.Return (Frame.LeftApplicationToValue V :: s) (CekValue.VLam x M ρ) =>
-      State.Eval s (.NonEmptyEnvironment ρ x V) M
-  | State.Return (Frame.RightApplicationOfValue (CekValue.VBuiltin b Vs (ι ⊙ η)) :: s) V =>
-      ifArgVOtherwiseError (State.Return s (CekValue.VBuiltin b (V :: Vs) η)) ι
-  | State.Return (Frame.LeftApplicationToValue V :: s) (CekValue.VBuiltin b Vs (ι ⊙ η)) =>
-      ifArgVOtherwiseError (State.Return s (CekValue.VBuiltin b (V :: Vs) η)) ι
-  | State.Return (Frame.RightApplicationOfValue (CekValue.VBuiltin b Vs (a[ι])) :: s) V =>
-      ifArgVOtherwiseError (evalBuiltin semanticsVariant s b (V :: Vs)) ι -- considering args reversal when calling builtin
-  | State.Return (Frame.LeftApplicationToValue V :: s) (CekValue.VBuiltin b Vs (a[ι])) =>
-      ifArgVOtherwiseError (evalBuiltin semanticsVariant s b (V :: Vs)) ι -- considering args reversal when calling builtin
-  | State.Return (Frame.ForceFrame :: s) (CekValue.VDelay M ρ) =>
-      State.Eval s ρ M
-  | State.Return (Frame.ForceFrame :: s) (CekValue.VBuiltin b Vs (ι ⊙ η)) =>
-      ifArgQOtherwiseError (State.Return s (CekValue.VBuiltin b Vs η)) ι
-  | State.Return (Frame.ForceFrame :: s) (CekValue.VBuiltin b Vs (a[ι])) =>
-      ifArgQOtherwiseError (evalBuiltin semanticsVariant s b Vs) ι
-  | State.Return (Frame.ConstructorArgument i Vs (M :: Ms) ρ :: s) V =>
-      State.Eval (Frame.ConstructorArgument i (V :: Vs) Ms ρ :: s) ρ M
-  | State.Return (Frame.ConstructorArgument i Vs [] ρ :: s) V =>
-      State.Return s (CekValue.VConstr i (List.reverse (V :: Vs)))
-  | State.Return (Frame.CaseScrutinee Ms ρ :: s) (CekValue.VConstr i Vs) =>
-        match Ms[i]? with
-        | some mi => State.Eval (folding Vs s) ρ mi
-        | none => State.Error
-  -- case on built-in constant types
-  -- Ref: CaseBuiltin DefaultUni in plutus-core/src/PlutusCore/Default/Universe.hs
-  -- The Haskell CEK dispatches via `caseBuiltin` which returns HeadOnly (no spine args)
-  -- or HeadSpine (branch + args to apply). We inline that dispatch here.
+  | State.Eval s ρ Tr =>
+      match Tr with
+      | Term.Var i =>
+           match List.get?Internal ρ i with
+           | some V => State.Return s V
+           | none => State.Error
+      | Term.Term.Const c => State.Return s (CekValue.VCon c)
+      | Term.Lam x M => State.Return s (CekValue.VLam x M ρ)
+      | Term.Delay M => State.Return s (CekValue.VDelay M ρ)
+      | Term.Force M => State.Eval (Frame.ForceFrame :: s) ρ M
+      | Term.Apply M N => State.Eval (Frame.LeftApplicationToTerm N ρ :: s) ρ M
+      | Term.Constr i Ts =>
+           match Ts with
+           | M :: Ms => State.Eval (Frame.ConstructorArgument i [] Ms ρ :: s) ρ M
+           | [] => State.Return s (CekValue.VConstr i [])
+      | Term.Case N Ms => State.Eval (Frame.CaseScrutinee Ms ρ :: s) ρ N
+      | Term.Builtin b => State.Return s (CekValue.VBuiltin b [] (α(b)))
+      | Term.Error => State.Error
 
-  -- DefaultUniInteger: selects branch at index n (0-indexed), no spine args.
-  --   | 0 <= x && x < toInteger len -> HeadOnly $ branches Vector.! fromInteger x
-  --   | otherwise -> HeadError
-  | State.Return (Frame.CaseScrutinee Ms ρ :: s) (CekValue.VCon (Const.Integer n)) =>
-        if 0 ≤ n && n.toNat < Ms.length then
-          match Ms[n.toNat]? with
-          | some mi => State.Eval s ρ mi
-          | none => State.Error
-        else State.Error
+  | State.Return [] Vr => State.Halt Vr
+  | State.Return (x :: s) Vr =>
+         match x with
+         | Frame.LeftApplicationToTerm M ρ =>
+                State.Eval (Frame.RightApplicationOfValue Vr :: s) ρ M
 
-  -- DefaultUniBool:
-  --   False | len == 1 || len == 2 -> HeadOnly (branches ! 0)
-  --   True  | len == 2             -> HeadOnly (branches ! 1)
-  --   _ -> HeadError (wrong number of branches)
-  | State.Return (Frame.CaseScrutinee Ms ρ :: s) (CekValue.VCon (Const.Bool false)) =>
-        if Ms.length == 1 || Ms.length == 2 then
-          match Ms[0]? with
-          | some mi => State.Eval s ρ mi
-          | none => State.Error
-        else State.Error
-  | State.Return (Frame.CaseScrutinee Ms ρ :: s) (CekValue.VCon (Const.Bool true)) =>
-        if Ms.length == 2 then
-          match Ms[1]? with
-          | some mi => State.Eval s ρ mi
-          | none => State.Error
-        else State.Error
+         | Frame.LeftApplicationToValue V =>
+             match Vr with
+             | CekValue.VLam _ M ρ =>
+                  State.Eval s (V :: ρ) M
+             | CekValue.VBuiltin b Vs (ExpectedBuiltinArg.ArgV ⊙ η) =>
+                  State.Return s (CekValue.VBuiltin b (V :: Vs) η)
+             | CekValue.VBuiltin b Vs (a[ExpectedBuiltinArg.ArgV]) =>
+                  evalBuiltin semanticsVariant s b (V :: Vs) -- considering args reversal when calling builtin
+             | _ => State.Error
 
-  -- DefaultUniUnit: exactly 1 branch; HeadOnly (branches ! 0), no spine args
-  | State.Return (Frame.CaseScrutinee Ms ρ :: s) (CekValue.VCon Const.Unit) =>
-        if Ms.length == 1 then
-          match Ms[0]? with
-          | some mi => State.Eval s ρ mi
-          | none => State.Error
-        else State.Error
+         | Frame.RightApplicationOfValue Va =>
+             match Va with
+             | CekValue.VLam _ M ρ =>
+                   State.Eval s (Vr :: ρ) M
+             | CekValue.VBuiltin b Vs (ExpectedBuiltinArg.ArgV ⊙ η) =>
+                   State.Return s (CekValue.VBuiltin b (Vr :: Vs) η)
+             | CekValue.VBuiltin b Vs (a[ExpectedBuiltinArg.ArgV]) =>
+                   evalBuiltin semanticsVariant s b (Vr :: Vs) -- considering args reversal when calling builtin
+             | _ => State.Error
 
-  -- DefaultUniPair: exactly 1 branch; HeadSpine (branches ! 0) [fst, snd]
-  --   branch is applied to fst and snd as separate arguments
-  | State.Return (Frame.CaseScrutinee Ms ρ :: s) (CekValue.VCon (Const.Pair p)) =>
-        if Ms.length == 1 then
-          let Vs := [CekValue.VCon p.1, CekValue.VCon p.2]
-          match Ms[0]? with
-          | some mi => State.Eval (folding Vs s) ρ mi
-          | none => State.Error
-        else State.Error
-  | State.Return (Frame.CaseScrutinee Ms ρ :: s) (CekValue.VCon (Const.PairData p)) =>
-        if Ms.length == 1 then
-          let Vs := [CekValue.VCon (Const.Data p.1), CekValue.VCon (Const.Data p.2)]
-          match Ms[0]? with
-          | some mi => State.Eval (folding Vs s) ρ mi
-          | none => State.Error
-        else State.Error
+         | Frame.ForceFrame =>
+             match Vr with
+             | CekValue.VDelay M ρ =>
+                   State.Eval s ρ M
+             | CekValue.VBuiltin b Vs (ExpectedBuiltinArg.ArgQ ⊙ η) =>
+                   State.Return s (CekValue.VBuiltin b Vs η)
+             | CekValue.VBuiltin b Vs (a[ExpectedBuiltinArg.ArgQ]) =>
+                   evalBuiltin semanticsVariant s b Vs
+             | _ => State.Error
 
-  -- DefaultUniList (len == 2):
-  --   non-empty: HeadSpine (branches ! 0) [head, tail]
-  --   empty:     HeadOnly  (branches ! 1), no spine args
-  -- DefaultUniList (len == 1): only non-empty valid; empty → HeadError
-  | State.Return (Frame.CaseScrutinee Ms ρ :: s) (CekValue.VCon (Const.ConstList (c :: cs))) =>
-        if Ms.length == 1 || Ms.length == 2 then
-          let Vs := [CekValue.VCon c, CekValue.VCon (Const.ConstList cs)]
-          match Ms[0]? with
-          | some mi => State.Eval (folding Vs s) ρ mi
-          | none => State.Error
-        else State.Error
-  | State.Return (Frame.CaseScrutinee Ms ρ :: s) (CekValue.VCon (Const.ConstList [])) =>
-        if Ms.length == 2 then
-          match Ms[1]? with
-          | some mi => State.Eval s ρ mi
-          | none => State.Error
-        else State.Error
-  | State.Return (Frame.CaseScrutinee Ms ρ :: s) (CekValue.VCon (Const.ConstDataList (c :: cs))) =>
-        if Ms.length == 1 || Ms.length == 2 then
-          let Vs := [CekValue.VCon (.Data c), CekValue.VCon (Const.ConstDataList cs)]
-          match Ms[0]? with
-          | some mi => State.Eval (folding Vs s) ρ mi
-          | none => State.Error
-        else State.Error
-  | State.Return (Frame.CaseScrutinee Ms ρ :: s) (CekValue.VCon (Const.ConstDataList [])) =>
-        if Ms.length == 2 then
-          match Ms[1]? with
-          | some mi => State.Eval s ρ mi
-          | none => State.Error
-        else State.Error
-  | State.Return (Frame.CaseScrutinee Ms ρ :: s) (CekValue.VCon (Const.ConstPairDataList (c :: cs))) =>
-        if Ms.length == 1 || Ms.length == 2 then
-          let Vs := [CekValue.VCon (.PairData c), CekValue.VCon (Const.ConstPairDataList cs)]
-          match Ms[0]? with
-          | some mi => State.Eval (folding Vs s) ρ mi
-          | none => State.Error
-        else State.Error
-  | State.Return (Frame.CaseScrutinee Ms ρ :: s) (CekValue.VCon (Const.ConstPairDataList [])) =>
-        if Ms.length == 2 then
-          match Ms[1]? with
-          | some mi => State.Eval s ρ mi
-          | none => State.Error
-        else State.Error
+         | Frame.ConstructorArgument i Vs Ts ρ =>
+             match Ts with
+             | M :: Ms => State.Eval (Frame.ConstructorArgument i (Vr :: Vs) Ms ρ :: s) ρ M
+             | [] => State.Return s (CekValue.VConstr i (List.reverse (Vr :: Vs)))
+
+         | Frame.CaseScrutinee Ms ρ =>
+             match Vr with
+             | CekValue.VConstr i Vs =>
+                  match List.get?Internal Ms i with
+                  | some mi => State.Eval (folding Vs s) ρ mi
+                  | none => State.Error
+
+             | CekValue.VCon (Const.Integer n) =>
+                  if 0 ≤ n && n.toNat < Ms.length then
+                    match Ms[n.toNat]? with
+                    | some mi => State.Eval s ρ mi
+                    | none => State.Error
+                  else State.Error
+
+             | CekValue.VCon (Const.Bool false) =>
+                  if Ms.length == 1 || Ms.length == 2 then
+                    match List.get?Internal Ms 0 with
+                    | some mi => State.Eval s ρ mi
+                    | none => State.Error
+                  else State.Error
+
+             | CekValue.VCon (Const.Bool true) =>
+                  if Ms.length == 2 then
+                    match List.get?Internal Ms 1 with
+                    | some mi => State.Eval s ρ mi
+                    | none => State.Error
+                  else State.Error
+
+             | CekValue.VCon Const.Unit =>
+                   if Ms.length == 1 then
+                     match Ms[0]? with
+                     | some mi => State.Eval s ρ mi
+                     | none => State.Error
+                   else State.Error
+
+             | CekValue.VCon (Const.Pair p) =>
+                   if Ms.length == 1 then
+                     let Vs := [CekValue.VCon p.1, CekValue.VCon p.2]
+                     match List.get?Internal Ms 0 with
+                     | some mi => State.Eval (folding Vs s) ρ mi
+                     | none => State.Error
+                   else State.Error
+
+             | CekValue.VCon (Const.PairData p) =>
+                   if Ms.length == 1 then
+                     let Vs := [CekValue.VCon (Const.Data p.1), CekValue.VCon (Const.Data p.2)]
+                     match List.get?Internal Ms 0 with
+                     | some mi => State.Eval (folding Vs s) ρ mi
+                     | none => State.Error
+                   else State.Error
+
+             | CekValue.VCon (Const.ConstList (c :: cs)) =>
+                   if Ms.length == 1 || Ms.length == 2 then
+                     let Vs := [CekValue.VCon c, CekValue.VCon (Const.ConstList cs)]
+                     match List.get?Internal Ms 0 with
+                     | some mi => State.Eval (folding Vs s) ρ mi
+                     | none => State.Error
+                   else State.Error
+
+             | CekValue.VCon (Const.ConstList []) =>
+                   if Ms.length == 2 then
+                     match List.get?Internal Ms 1 with
+                     | some mi => State.Eval s ρ mi
+                     | none => State.Error
+                   else State.Error
+
+             | CekValue.VCon (Const.ConstDataList (c :: cs)) =>
+                   if Ms.length == 1 || Ms.length == 2 then
+                     let Vs := [CekValue.VCon (.Data c), CekValue.VCon (Const.ConstDataList cs)]
+                     match Ms[0]? with
+                     | some mi => State.Eval (folding Vs s) ρ mi
+                     | none => State.Error
+                   else State.Error
+
+             | CekValue.VCon (Const.ConstDataList []) =>
+                   if Ms.length == 2 then
+                     match List.get?Internal Ms 1 with
+                     | some mi => State.Eval s ρ mi
+                     | none => State.Error
+                   else State.Error
+
+             | CekValue.VCon (Const.ConstPairDataList (c :: cs)) =>
+                   if Ms.length == 1 || Ms.length == 2 then
+                     let Vs := [CekValue.VCon (.PairData c), CekValue.VCon (Const.ConstPairDataList cs)]
+                     match List.get?Internal Ms 0 with
+                     | some mi => State.Eval (folding Vs s) ρ mi
+                     | none => State.Error
+                   else State.Error
+
+             | CekValue.VCon (Const.ConstPairDataList []) =>
+                   if Ms.length == 2 then
+                     match List.get?Internal Ms 1 with
+                     | some mi => State.Eval s ρ mi
+                     | none => State.Error
+                   else State.Error
+
+             | _ => State.Error
 
   | _ => State.Error
 
@@ -254,7 +241,7 @@ def applyParams (body : Term) (params : List Term) : Term :=
 
 -- Define Initial State
 def initialState (t : Term) : State :=
-  State.Eval [] Environment.EmptyEnvironment t
+  State.Eval [] [] t
 
 def cekExecuteProgramWithSemanticVariant (semanticVariant : BuiltinSemanticsVariant) (p : Program) (params : List Term) (n : Nat) : State :=
   match p with

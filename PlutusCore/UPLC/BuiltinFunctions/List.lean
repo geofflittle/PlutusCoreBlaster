@@ -49,15 +49,21 @@ def mkCons (Vs : List CekValue) : Option CekValue :=
 def headList (Vs : List CekValue) : Option CekValue :=
   match Vs with
   | [.VCon (.ConstList xs)] =>
-      tryCatchSome (PLC.headList xs) (.VCon)
+         match xs with
+         | [] => none
+         | x :: _ => some (.VCon x)
 
   | [.VCon (.ConstDataList xs)] =>
       -- case for ConstDataList
-      tryCatchSome (PLC.headList xs) (.VCon ∘ .Data)
+         match xs with
+         | [] => none
+         | x :: _ => some (.VCon (.Data x))
 
   | [.VCon (.ConstPairDataList xs)] =>
       -- case for ConstPairDataList
-      tryCatchSome (PLC.headList xs) (.VCon ∘ .PairData)
+        match xs with
+         | [] => none
+         | x :: _ => some (.VCon (.PairData x))
 
   | _ => none
 
@@ -65,15 +71,21 @@ def headList (Vs : List CekValue) : Option CekValue :=
 def tailList (Vs : List CekValue) : Option CekValue :=
   match Vs with
   | [.VCon (.ConstList xs)] =>
-      tryCatchSome (PLC.tailList xs) (.VCon ∘ .ConstList)
+        match xs with
+        | [] => none
+        | _ :: tl => some (.VCon (.ConstList tl))
 
   | [.VCon (.ConstDataList xs)] =>
       -- case for ConstDataList
-      tryCatchSome (PLC.tailList xs) (.VCon ∘ .ConstDataList)
+        match xs with
+        | [] => none
+        | _ :: tl => some (.VCon (.ConstDataList tl))
 
   | [.VCon (.ConstPairDataList xs)] =>
       -- case for ConstPairDataList
-      tryCatchSome (PLC.tailList xs) (.VCon ∘ .ConstPairDataList)
+        match xs with
+        | [] => none
+        | _ :: tl => some (.VCon (.ConstPairDataList tl))
   | _ => none
 
 -- Define nullList
