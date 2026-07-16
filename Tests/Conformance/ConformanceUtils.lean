@@ -89,7 +89,7 @@ end
 mutual
   -- Convert a CekValue back to a Term for substitution.
   private def cekValueToTerm : Nat → CekValue → Term
-    | p + 1, .VCon c            => .Const c
+    | _ + 1, .VCon c            => .Const c
     | p + 1, .VLam x body env   => .Lam x (closeTermWithEnv env [x] p body)
     | p + 1, .VDelay body env   => .Delay (closeTermWithEnv env []  p body)
     | p + 1, .VConstr n args    => .Constr n (args.map (cekValueToTerm p))
