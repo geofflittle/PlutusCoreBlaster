@@ -67,6 +67,15 @@ example :
     ]
   ) = .some (s2ba "\xd8\x79\x9f\x1a\x08\x9a\xfe\x76\x19\x58\xb6\x1b\x00\x00\x00\x01\x05\x87\x4b\xa1\xff") := by native_decide
 
+-- Bignum encoding (magnitude ≥ 2^64) goes through `itos`, which must be big-endian (Spec B.6).
+example : itos 258 = s2ba "\x01\x02" := by native_decide
+-- Positive bignum: CBOR tag 2 (0xc2), then a 9-byte bytestring 01 00…00 for 2^64.
+example : encodeData (.I 18446744073709551616) =
+  .some (s2ba "\xc2\x49\x01\x00\x00\x00\x00\x00\x00\x00\x00") := by native_decide
+-- Negative bignum: CBOR tag 3 (0xc3); the encoded magnitude is -n-1 = 2^64.
+example : encodeData (.I (-18446744073709551617)) =
+  .some (s2ba "\xc3\x49\x01\x00\x00\x00\x00\x00\x00\x00\x00") := by native_decide
+
 -- ==============
 -- =  Decoding  =
 -- ==============
@@ -103,5 +112,9 @@ example : decodeData (s2ba "\xd8\x79\x9f\x1a\x08\x9a\xfe\x76\x19\x58\xb6\x1b\x00
         .I 4387720097
       ]
   ) := by native_decide
+
+-- Bignum decode: reads the big-endian bytestring back to 2^64 (round-trips with encoding above).
+example : decodeData (s2ba "\xc2\x49\x01\x00\x00\x00\x00\x00\x00\x00\x00") =
+  .some (s2ba "", .I 18446744073709551616) := by native_decide
 
 end PlutusCore.Cbor
