@@ -86,7 +86,7 @@ def encodeBytestringChunk (s : String) : Option (List Char) := do
 -- Spec B.5. ε_B*
 def encodeBytestring (s : String) : Option String :=
   match splitToChunks s with
-  | []      => .some ""
+  | []      => String.mk <$> encodeHead 2 0  -- empty bytestring is a definite 0-length string (0x40)
   | h :: [] => String.mk <$> encodeBytestringChunk h
   | chunks  => do .some ⟨encodeIndef 2 :: (List.concat (←List.flatMapM encodeBytestringChunk chunks) '\xFF')⟩
 
@@ -125,18 +125,26 @@ def encodeCtag (i : Integer) : Option String :=
 /-- Encode data (builtinData). -/
 -- Spec B.7. Encoding and  decoding Data. ε_data
 def encodeData : Data → Option String
-  | .Constr idx fields => do
-      (←encodeCtag idx)
-      ++ (encodeIndef 4 |> String.singleton)
-      ++ (←List.foldlM (λ s a => do .some (s ++ (←encodeData a))) "" fields)
-      ++ "\xFF"
+  | .Constr idx fields =>
+      if fields.isEmpty then do
+        -- empty field list is a DEFINITE empty array (0x80), matching the serialiseData builtin
+        (←encodeCtag idx) ++ (String.mk (←encodeHead 4 0))
+      else do
+        (←encodeCtag idx)
+        ++ (encodeIndef 4 |> String.singleton)
+        ++ (←List.foldlM (λ s a => do .some (s ++ (←encodeData a))) "" fields)
+        ++ "\xFF"
   | .Map mxs => do
       ((←encodeHead 5 (List.length mxs)) |> String.mk)
       ++ (←List.foldlM (λ s p => do .some (s ++ (←encodeData p.fst) ++ (←encodeData p.snd))) "" mxs)
-  | .List xs => do
-      (encodeIndef 4 |> String.singleton)
-      ++ (←List.foldlM (λ s a => do .some (s ++ (←encodeData a))) "" xs)
-      ++ "\xFF"
+  | .List xs =>
+      if xs.isEmpty then
+        -- empty list is a DEFINITE empty array (0x80), matching the serialiseData builtin
+        String.mk <$> encodeHead 4 0
+      else do
+        (encodeIndef 4 |> String.singleton)
+        ++ (←List.foldlM (λ s a => do .some (s ++ (←encodeData a))) "" xs)
+        ++ "\xFF"
   | .I i => encodeInt i
   | .B bs => encodeBytestring bs.data
 
@@ -556,7 +564,7 @@ def decodeInt (s : String) : Option (String × Integer) :=
   | .some (s', 0, n) => .some (⟨s'⟩,  (Int.ofNat n)    )
   | .some (s', 1, n) => .some (⟨s'⟩, -(Int.ofNat n) - 1)
   | .some (s', 6, 2) => (λ (s'', b) => (s'',              stoi b      )) <$> decodeBytestring ⟨s'⟩
-  | .some (s', 6, 3) => (λ (s'', b) => (s'', -(Int.ofNat (stoi b) - 1))) <$> decodeBytestring ⟨s'⟩
+  | .some (s', 6, 3) => (λ (s'', b) => (s'', -(Int.ofNat (stoi b)) - 1)) <$> decodeBytestring ⟨s'⟩
   | _                => .none
 
 /-- Helper theorem: decodeInt consumes at least one byte on success -/
@@ -613,9 +621,14 @@ theorem decodeInt_consumes (s : String) :
 def decodeCtag (s : List Char) : Option (List Char × Integer) :=
   match decodeHead s with
   | .some (s', 6, 102) => do
+      -- Only the definite 2-element wrapper (0x82) is accepted.
       let (s'', m, n) ← decodeHead s'
       if m = 4 ∧ n = 2
-        then Prod.map String.data id <$> decodeInt ⟨s''⟩
+        then do
+          -- Index is a direct Word64 (matches decodeWord64). A negative or bignum-encoded
+          -- index is write-only, so reject it on decode.
+          let (s''', im, iv) ← decodeHead s''
+          if im = 0 then .some (s''', Int.ofNat iv) else .none
         else .none
   | .some (s', 6, i) =>      if  121 ≤ i ∧ i ≤  127 then .some (s',  i -  121     )
                         else if 1280 ≤ i ∧ i ≤ 1400 then .some (s', (i - 1280) + 7)
@@ -657,23 +670,23 @@ theorem decodeCtag_consumes (s : List Char) :
     simp only [Option.bind_eq_bind, Option.bind_eq_some_iff] at h
     obtain ⟨⟨s''', m, n⟩, hdh2, h_rest⟩ := h
     split at h_rest
-    · -- decodeInt succeeds (split confirms m = 4 and n = 2)
+    · -- index decode succeeds (split confirms m = 4 and n = 2), index is a direct Word64
       rename_i heq_mn
-      cases h_int : decodeInt ⟨s'''⟩ with
-      | none => simp [h_int] at h_rest
-      | some res =>
-        simp [h_int, Prod.map] at h_rest
-        obtain ⟨h_eq_s', h_eq_i⟩ := h_rest
+      simp only [Option.bind_eq_some_iff] at h_rest
+      obtain ⟨⟨s4, im, iv⟩, hdh3, h_rest2⟩ := h_rest
+      split at h_rest2
+      · rename_i him
+        simp at h_rest2
+        obtain ⟨h_eq_s', h_eq_i⟩ := h_rest2
         have h_head1 := decodeHead_consumes s k 6 102 hdh
-        -- Use heq_mn to show m = 4 and n = 2
         have ⟨hm, hn⟩ : m = 4 ∧ n = 2 := heq_mn
         subst hm hn
         have h_head2 := decodeHead_consumes k s''' 4 2 hdh2
-        have h_int_cons := decodeInt_consumes ⟨s'''⟩ res.1 res.2 h_int
-        simp at h_int_cons
+        subst him
+        have h_head3 := decodeHead_consumes s''' s4 0 iv hdh3
         rw [← h_eq_s']
-        simp
         omega
+      · simp at h_rest2
     · simp at h_rest
   · -- Case: decodeHead s = some (s'', 6, i_val) with i_val ≠ 102
     rename_i s'' i_val hne hdh
