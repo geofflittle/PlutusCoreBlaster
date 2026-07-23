@@ -279,19 +279,22 @@ def decodeBuiltinFun (_v : Version) (s : List Bool) : Option (List Bool × Built
   let builtinFun ← List.lookup n builtinTable
   .some (s', builtinFun)
 
-/- Decodes a DeBruijn index.
-   Note: the name of the variable is arbitrarily chose to be `dbi_X`. -/
+/- Display-only binder name for the lambda introduced at nesting level X. -/
 def varName (debruijn : Nat) : String := s!"dbi_{debruijn}"
 
-/- Decodes a DeBruijn index and generates a variable name for it. -/
-def decodeVar (nextDebruijn : Nat) (s : List Bool) : Option (List Bool × String) := do
+/- Decodes a DeBruijn index.
+   Flat encodes 1-based relative indices (index 0 is invalid); `Term.Var`
+   uses 0-based indices (0 = innermost binder), so we subtract 1. -/
+def decodeVar (s : List Bool) : Option (List Bool × Nat) := do
   let (s', n) ← decodeNat s
   let _       ← Option.filter (λ () => n > 0) (.some ())
-  .some (s', varName (nextDebruijn - n))
+  .some (s', n - 1)
 
-/- Decodes a UPLC term. -/
+/- Decodes a UPLC term.
+   `nextDeBruijn` counts enclosing binders and is used only to synthesize
+   display names for lambdas; variables decode to plain indices. -/
 partial def decodeTerm (v : Version) (nextDeBruijn : Nat) : List Bool → Option (List Bool × Term)
-  | false :: false :: false :: false :: s => Prod.map id .Var                          <$> decodeVar nextDeBruijn s
+  | false :: false :: false :: false :: s => Prod.map id .Var                          <$> decodeVar s
   | false :: false :: false :: true  :: s => Prod.map id .Delay                        <$> decodeTerm v nextDeBruijn s
   | false :: false :: true  :: false :: s => Prod.map id (.Lam (varName nextDeBruijn)) <$> decodeTerm v (nextDeBruijn + 1) s
   | false :: false :: true  :: true  :: s => do

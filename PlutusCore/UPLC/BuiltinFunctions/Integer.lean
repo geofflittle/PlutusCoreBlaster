@@ -56,28 +56,36 @@ def multiplyInteger (Vs : List CekValue) : Option CekValue :=
 def divideInteger (Vs : List CekValue) : Option CekValue :=
   match Vs with
   | [CekValue.VCon (Const.Integer op2), CekValue.VCon (Const.Integer op1)] =>
-       tryCatchSome (PLC.divideInteger op1 op2) (CekValue.VCon ∘ Const.Integer)
+       if op2 != 0
+       then some (CekValue.VCon (Const.Integer (Int.fdiv op1 op2)))
+       else none
   | _ => none
 
 -- Define modInteger (truncates towards negative infinity)
 def modInteger (Vs : List CekValue) : Option CekValue :=
   match Vs with
   | [CekValue.VCon (Const.Integer op2), CekValue.VCon (Const.Integer op1)] =>
-      tryCatchSome (PLC.modInteger op1 op2) (CekValue.VCon ∘ Const.Integer)
+        if op2 != 0
+        then some (CekValue.VCon (Const.Integer (Int.fmod op1 op2)))
+        else none
   | _ => none
 
 -- Define quotientInteger (truncates towards zero)
 def quotientInteger (Vs : List CekValue) : Option CekValue :=
   match Vs with
   | [CekValue.VCon (Const.Integer op2), CekValue.VCon (Const.Integer op1)] =>
-      tryCatchSome (PLC.quotientInteger op1 op2) (CekValue.VCon ∘ Const.Integer)
+        if op2 != 0
+        then some (CekValue.VCon (Const.Integer (Int.tdiv op1 op2)))
+        else none
   | _ => none
 
 -- Define remainderInteger (truncates towards zero)
 def remainderInteger (Vs : List CekValue) : Option CekValue :=
   match Vs with
   | [CekValue.VCon (Const.Integer op2), CekValue.VCon (Const.Integer op1)] =>
-      tryCatchSome (PLC.remainderInteger op1 op2) (CekValue.VCon ∘ Const.Integer)
+        if op2 != 0
+        then some (CekValue.VCon (Const.Integer (Int.tmod op1 op2)))
+        else none
   | _ => none
 
 

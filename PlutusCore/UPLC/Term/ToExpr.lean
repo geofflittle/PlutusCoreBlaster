@@ -152,7 +152,9 @@ instance : ToExpr BuiltinFun where
     | .DropList                        => .const ``BuiltinFun.DropList []
 
 partial def termToExpr : PlutusCore.UPLC.Term.Term → Expr
-  | .Var     s   =>  .app  (.const ``Term.Var     []) (toExpr s)
+  -- Raw literal keeps the Expr shallow: huge decoded scripts contain many
+  -- Var leaves and the OfNat wrapper of `toExpr (i : Nat)` blows maxRecDepth.
+  | .Var     i   =>  .app  (.const ``Term.Var     []) (mkRawNatLit i)
   | .Const   c   =>  .app  (.const ``Term.Const   []) (toExpr c)
   | .Builtin b   =>  .app  (.const ``Term.Builtin []) (toExpr b)
   | .Lam     x b => mkApp2 (.const ``Term.Lam     []) (toExpr x)     (termToExpr b)

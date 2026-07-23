@@ -37,6 +37,31 @@ end
 
 instance : BEq Const := ⟨constBeq⟩
 
+mutual
+  private def termListBeq : List Term → List Term → Bool
+    | h1 :: t1, h2 :: t2 => termBeq h1 h2 && termListBeq t1 t2
+    | []      , []       => true
+    | _       , _        => false
+
+  -- BEq for Term. With de Bruijn indices this structural equality
+  -- coincides with alpha-equivalence; binder names are display-only
+  -- metadata and are not compared.
+  private def termBeq : Term → Term → Bool
+    | .Var i        , .Var j         => i == j
+    | .Const c1     , .Const c2      => c1 == c2
+    | .Builtin b1   , .Builtin b2    => b1 == b2
+    | .Lam _ b1     , .Lam _ b2      => termBeq b1 b2
+    | .Apply f1 a1  , .Apply f2 a2   => termBeq f1 f2 && termBeq a1 a2
+    | .Delay t1     , .Delay t2      => termBeq t1 t2
+    | .Force t1     , .Force t2      => termBeq t1 t2
+    | .Constr n1 ts1, .Constr n2 ts2 => n1 == n2 && termListBeq ts1 ts2
+    | .Case s1 hs1  , .Case s2 hs2   => termBeq s1 s2 && termListBeq hs1 hs2
+    | .Error        , .Error         => true
+    | _             , _              => false
+end
+
+instance : BEq Term := ⟨termBeq⟩
+
 instance : Repr AtomicType where
   reprPrec t _ :=
     match t with

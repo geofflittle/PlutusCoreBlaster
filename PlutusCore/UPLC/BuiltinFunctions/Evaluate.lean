@@ -30,119 +30,119 @@ open PlutusCore.UPLC.BuiltinFunctions.Trace
 open PlutusCore.UPLC.BuiltinFunctions.Unit
 
 -- Evaluate a builtin function based on its type.
-def evaluateBuiltinFunction (semanticsVariant : BuiltinSemanticsVariant) (b : BuiltinFun) : List CekValue → Option CekValue :=
+def evaluateBuiltinFunction (semanticsVariant : BuiltinSemanticsVariant) (b : BuiltinFun) (Vs : List CekValue) : Option CekValue :=
   match b with
   -- Batch 1
   -- Integer
-  | .AddInteger                      => addInteger
-  | .SubtractInteger                 => subtractInteger
-  | .MultiplyInteger                 => multiplyInteger
-  | .DivideInteger                   => divideInteger
-  | .QuotientInteger                 => quotientInteger
-  | .RemainderInteger                => remainderInteger
-  | .ModInteger                      => modInteger
-  | .EqualsInteger                   => equalsInteger
-  | .LessThanInteger                 => lessThanInteger
-  | .LessThanEqualsInteger           => lessThanEqualsInteger
+  | .AddInteger                      => addInteger Vs
+  | .SubtractInteger                 => subtractInteger Vs
+  | .MultiplyInteger                 => multiplyInteger Vs
+  | .DivideInteger                   => divideInteger Vs
+  | .QuotientInteger                 => quotientInteger Vs
+  | .RemainderInteger                => remainderInteger Vs
+  | .ModInteger                      => modInteger Vs
+  | .EqualsInteger                   => equalsInteger Vs
+  | .LessThanInteger                 => lessThanInteger Vs
+  | .LessThanEqualsInteger           => lessThanEqualsInteger Vs
   -- ByteString
-  | .AppendByteString                => appendByteString
-  | .ConsByteString                  => consByteString semanticsVariant
-  | .SliceByteString                 => sliceByteString
-  | .LengthOfByteString              => lengthOfByteString
-  | .IndexByteString                 => indexByteString
-  | .EqualsByteString                => equalsByteString
-  | .LessThanByteString              => lessThanByteString
-  | .LessThanEqualsByteString        => lessThanEqualsByteString
+  | .AppendByteString                => appendByteString Vs
+  | .ConsByteString                  => consByteString semanticsVariant Vs
+  | .SliceByteString                 => sliceByteString Vs
+  | .LengthOfByteString              => lengthOfByteString Vs
+  | .IndexByteString                 => indexByteString Vs
+  | .EqualsByteString                => equalsByteString Vs
+  | .LessThanByteString              => lessThanByteString Vs
+  | .LessThanEqualsByteString        => lessThanEqualsByteString Vs
   -- Cryptography
-  | .Sha2_256                        => Crypto.sha2_256
-  | .Sha3_256                        => Crypto.sha3_256
-  | .Blake2b_256                     => Crypto.blake2b_256
-  | .VerifyEd25519Signature          => Crypto.verifyEd25519Signature
+  | .Sha2_256                        => Crypto.sha2_256 Vs
+  | .Sha3_256                        => Crypto.sha3_256 Vs
+  | .Blake2b_256                     => Crypto.blake2b_256 Vs
+  | .VerifyEd25519Signature          => Crypto.verifyEd25519Signature Vs
   -- String
-  | .AppendString                    => appendString
-  | .EqualsString                    => equalsString
-  | .EncodeUtf8                      => encodeUtf8
-  | .DecodeUtf8                      => decodeUtf8
+  | .AppendString                    => appendString Vs
+  | .EqualsString                    => equalsString Vs
+  | .EncodeUtf8                      => encodeUtf8 Vs
+  | .DecodeUtf8                      => decodeUtf8 Vs
   -- Bool
-  | .IfThenElse                      => ifThenElse
+  | .IfThenElse                      => ifThenElse Vs
   -- Unit
-  | .ChooseUnit                      => chooseUnit
+  | .ChooseUnit                      => chooseUnit Vs
   -- Tracing
-  | .Trace                           => trace
+  | .Trace                           => trace Vs
   -- Pair
-  | .FstPair                         => fstPair
-  | .SndPair                         => sndPair
+  | .FstPair                         => fstPair Vs
+  | .SndPair                         => sndPair Vs
   -- List
-  | .ChooseList                      => chooseList
-  | .MkCons                          => mkCons
-  | .HeadList                        => headList
-  | .TailList                        => tailList
-  | .NullList                        => nullList
+  | .ChooseList                      => chooseList Vs
+  | .MkCons                          => mkCons Vs
+  | .HeadList                        => headList Vs
+  | .TailList                        => tailList Vs
+  | .NullList                        => nullList Vs
   -- Data
-  | .ChooseData                      => chooseData
-  | .ConstrData                      => constrData
-  | .MapData                         => mapData
-  | .ListData                        => listData
-  | .IData                           => iData
-  | .BData                           => bData
-  | .UnConstrData                    => unConstrData
-  | .UnMapData                       => unMapData
-  | .UnListData                      => unListData
-  | .UnIData                         => unIData
-  | .UnBData                         => unBData
-  | .EqualsData                      => equalsData
+  | .ChooseData                      => chooseData Vs
+  | .ConstrData                      => constrData Vs
+  | .MapData                         => mapData Vs
+  | .ListData                        => listData Vs
+  | .IData                           => iData Vs
+  | .BData                           => bData Vs
+  | .UnConstrData                    => unConstrData Vs
+  | .UnMapData                       => unMapData Vs
+  | .UnListData                      => unListData Vs
+  | .UnIData                         => unIData Vs
+  | .UnBData                         => unBData Vs
+  | .EqualsData                      => equalsData Vs
   -- Misc constructors
-  | .MkPairData                      => mkPairData
-  | .MkNilData                       => mkNilData
-  | .MkNilPairData                   => mkNilPairData
+  | .MkPairData                      => mkPairData Vs
+  | .MkNilData                       => mkNilData Vs
+  | .MkNilPairData                   => mkNilPairData Vs
   -- Batch 2
-  | .SerializeData                   => serializeData
+  | .SerializeData                   => serializeData Vs
   -- Batch 3
-  | .VerifyEcdsaSecp256k1Signature   => Crypto.verifyEcdsaSecp256k1Signature
-  | .VerifySchnorrSecp256k1Signature => Crypto.verifySchnorrSecp256k1Signature
+  | .VerifyEcdsaSecp256k1Signature   => Crypto.verifyEcdsaSecp256k1Signature Vs
+  | .VerifySchnorrSecp256k1Signature => Crypto.verifySchnorrSecp256k1Signature Vs
   -- Batch 4
   -- BLS curve
-  | .Bls12_381_G1_add                => Crypto.bls12381G1Add
-  | .Bls12_381_G1_neg                => Crypto.bls12381G1Neg
-  | .Bls12_381_G1_scalarMul          => Crypto.bls12381G1ScalarMul
-  | .Bls12_381_G1_equal              => Crypto.bls12381G1Equal
-  | .Bls12_381_G1_hashToGroup        => Crypto.bls12381G1HashToGroup
-  | .Bls12_381_G1_compress           => Crypto.bls12381G1Compress
-  | .Bls12_381_G1_uncompress         => Crypto.bls12381G1Uncompress
-  | .Bls12_381_G2_add                => Crypto.bls12381G2Add
-  | .Bls12_381_G2_neg                => Crypto.bls12381G2Neg
-  | .Bls12_381_G2_scalarMul          => Crypto.bls12381G2ScalarMul
-  | .Bls12_381_G2_equal              => Crypto.bls12381G2Equal
-  | .Bls12_381_G2_hashToGroup        => Crypto.bls12381G2HashToGroup
-  | .Bls12_381_G2_compress           => Crypto.bls12381G2Compress
-  | .Bls12_381_G2_uncompress         => Crypto.bls12381G2Uncompress
-  | .Bls12_381_G1_multiScalarMul     => Crypto.bls12381G1MultiScalarMul
-  | .Bls12_381_G2_multiScalarMul     => Crypto.bls12381G2MultiScalarMul
-  | .Bls12_381_millerLoop            => Crypto.bls12381MillerLoop
-  | .Bls12_381_mulMlResult           => Crypto.bls12381MulMlResult
-  | .Bls12_381_finalVerify           => Crypto.bls12381FinalVerify
+  | .Bls12_381_G1_add                => Crypto.bls12381G1Add Vs
+  | .Bls12_381_G1_neg                => Crypto.bls12381G1Neg Vs
+  | .Bls12_381_G1_scalarMul          => Crypto.bls12381G1ScalarMul Vs
+  | .Bls12_381_G1_equal              => Crypto.bls12381G1Equal Vs
+  | .Bls12_381_G1_hashToGroup        => Crypto.bls12381G1HashToGroup Vs
+  | .Bls12_381_G1_compress           => Crypto.bls12381G1Compress Vs
+  | .Bls12_381_G1_uncompress         => Crypto.bls12381G1Uncompress Vs
+  | .Bls12_381_G2_add                => Crypto.bls12381G2Add Vs
+  | .Bls12_381_G2_neg                => Crypto.bls12381G2Neg Vs
+  | .Bls12_381_G2_scalarMul          => Crypto.bls12381G2ScalarMul Vs
+  | .Bls12_381_G2_equal              => Crypto.bls12381G2Equal Vs
+  | .Bls12_381_G2_hashToGroup        => Crypto.bls12381G2HashToGroup Vs
+  | .Bls12_381_G2_compress           => Crypto.bls12381G2Compress Vs
+  | .Bls12_381_G2_uncompress         => Crypto.bls12381G2Uncompress Vs
+  | .Bls12_381_G1_multiScalarMul     => Crypto.bls12381G1MultiScalarMul Vs
+  | .Bls12_381_G2_multiScalarMul     => Crypto.bls12381G2MultiScalarMul Vs
+  | .Bls12_381_millerLoop            => Crypto.bls12381MillerLoop Vs
+  | .Bls12_381_mulMlResult           => Crypto.bls12381MulMlResult Vs
+  | .Bls12_381_finalVerify           => Crypto.bls12381FinalVerify Vs
   -- Other cryptography
-  | .Keccak_256                      => Crypto.keccak_256
-  | .Blake2b_224                     => Crypto.blake2b_224
+  | .Keccak_256                      => Crypto.keccak_256 Vs
+  | .Blake2b_224                     => Crypto.blake2b_224 Vs
   -- Batch 5 (bitwise)
-  | .IntegerToByteString             => integerToByteString
-  | .ByteStringToInteger             => byteStringToInteger
-  | .AndByteString                   => andByteString
-  | .OrByteString                    => orByteString
-  | .XorByteString                   => xorByteString
-  | .ComplementByteString            => complementByteString
-  | .ReadBit                         => readBit
-  | .WriteBits                       => writeBits
-  | .ReplicateByte                   => replicateByte
-  | .ShiftByteString                 => shiftByteString
-  | .RotateByteString                => rotateByteString
-  | .CountSetBits                    => countSetBits
-  | .FindFirstSetBit                 => findFirstSetBit
+  | .IntegerToByteString             => integerToByteString Vs
+  | .ByteStringToInteger             => byteStringToInteger Vs
+  | .AndByteString                   => andByteString Vs
+  | .OrByteString                    => orByteString Vs
+  | .XorByteString                   => xorByteString Vs
+  | .ComplementByteString            => complementByteString Vs
+  | .ReadBit                         => readBit Vs
+  | .WriteBits                       => writeBits Vs
+  | .ReplicateByte                   => replicateByte Vs
+  | .ShiftByteString                 => shiftByteString Vs
+  | .RotateByteString                => rotateByteString Vs
+  | .CountSetBits                    => countSetBits Vs
+  | .FindFirstSetBit                 => findFirstSetBit Vs
   -- Cryptography
-  | .Ripemd_160                      => Crypto.ripemd_160
+  | .Ripemd_160                      => Crypto.ripemd_160 Vs
   -- Batch 6
-  | .ExpModInteger                   => expModInteger
+  | .ExpModInteger                   => expModInteger Vs
   -- Batch 7
-  | .DropList                        => dropList
+  | .DropList                        => dropList Vs
 
 end PlutusCore.UPLC.BuiltinFunctions.Evaluate
