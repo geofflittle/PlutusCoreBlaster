@@ -621,7 +621,8 @@ theorem decodeInt_consumes (s : String) :
 def decodeCtag (s : List Char) : Option (List Char × Integer) :=
   match decodeHead s with
   | .some (s', 6, 102) => do
-      -- Only the definite 2-element wrapper (0x82) is accepted.
+      -- The definite 2-element wrapper (0x82) is accepted here. The indefinite form
+      -- (0x9f..0xff) that Data.hs also accepts is handled by decodeIndefConstr.
       let (s'', m, n) ← decodeHead s'
       if m = 4 ∧ n = 2
         then do
@@ -714,6 +715,7 @@ mutual
     match decodeAlternative decodeIndef decodeHead s with
     | .some (_ , .inl 2     ) => Prod.map String.data (.B ∘ ByteString.mk) <$> decodeBytestring ⟨s⟩
     | .some (s', .inl 4     ) => Prod.map id          .List                <$> decodeListIndef s'
+    | .some (s', .inl 5     ) => Prod.map id          .Map                 <$> decodePairListIndef s'
     | .some (_ , .inr (0, _))
     | .some (_ , .inr (1, _))
     | .some (_ , .inr (6, 2))
@@ -753,6 +755,39 @@ mutual
             | none => none
         | none => none
 
+  -- Decode an indefinite-length list of Data pairs (an indefinite-length Map, 0xbf..0xff). Spec B.7
+  -- D_data decodes maps as definite-only, so this EXTENDS the decoder beyond the spec to the
+  -- indefinite form Data.hs also accepts (decodeMapLenOrIndef). Decode-only, the encoder still
+  -- emits only definite maps.
+  partial def decodePairListIndef : List Char → Option (List Char × List (Data × Data))
+    | '\xFF' :: s' => .some (s', [])
+    | s            => match decodeDataLoop s with
+        | some (s', k) => match decodeDataLoop s' with
+            | some (s'', v) => match decodePairListIndef s'' with
+                | some (s''', l) => some (s''', (k, v) :: l)
+                | none => none
+            | none => none
+        | none => none
+
+  -- Decode a constructor whose tag-102 wrapper uses the INDEFINITE 2-element array
+  -- (0x9f index args 0xff), the form Data.hs accepts via decodeListLenOrIndef. The canonical
+  -- encoder never emits it, so this is decode-only leniency toward the reference implementation.
+  partial def decodeIndefConstr (s : List Char) : Option (List Char × Data) :=
+    match decodeHead s with
+    | .some (s', 6, 102) => match decodeIndef s' with
+        | .some (s'', 4) => match decodeHead s'' with
+            | .some (s3, 0, iv) => match decodeAlternative decodeIndef decodeHead s3 with
+                | .some (s4, .inl 4     ) => match decodeListIndef s4 with
+                    | .some ('\xFF' :: s6, args) => .some (s6, .Constr (Int.ofNat iv) args)
+                    | _                          => .none
+                | .some (s4, .inr (4, n)) => match decodeList n s4 with
+                    | .some ('\xFF' :: s6, args) => .some (s6, .Constr (Int.ofNat iv) args)
+                    | _                          => .none
+                | _                       => .none
+            | _ => .none
+        | _ => .none
+    | _ => .none
+
   -- Decode a constructor (Constr tag + list of Data values)
   partial def decodeConstr (s : List Char) : Option (List Char × Data) :=
     match decodeCtag s with
@@ -762,11 +797,13 @@ mutual
             | .inr (4, n) => Prod.map id (.Constr i) <$> decodeList n s''
             | _           => .none
         | none => none
-    | none => none
+    | none => decodeIndefConstr s
 end
 
 /- Decodes a builtin data from input `s`. -/
--- Spec B.7. D_data
+-- Spec B.7. D_data, EXTENDED beyond the spec on two indefinite-length forms the spec rejects but
+-- Data.hs accepts: indefinite maps (decodePairListIndef) and the indefinite tag-102 constructor
+-- wrapper (decodeIndefConstr). Decode-only, the encoder is unchanged.
 def decodeData (s : String) : Option (String × Data) :=
   Prod.map String.mk id <$> decodeDataLoop s.data
 

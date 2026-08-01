@@ -126,6 +126,61 @@ example : (encodeData (.Constr (-1) [])).bind decodeData = .none := by native_de
 example : (encodeData (.Map [(.I 1, .B { data := "aa" }), (.List [], .Constr 3 [.I 4])])).bind decodeData
   = .some ("", .Map [(.I 1, .B { data := "aa" }), (.List [], .Constr 3 [.I 4])]) := by native_decide
 
+-- Haskell conformance for indefinite-length forms. Data.hs accepts BOTH the canonical definite
+-- encoding and an indefinite one, for maps (decodeMapLenOrIndef) and the tag-102 constructor wrapper
+-- (decodeConstrExtended via decodeListLenOrIndef). For each shape below, the canonical definite form
+-- is exactly what encodeData emits, and both the definite form and the indefinite form decode to the
+-- SAME value. That pins the indefinite-form leniency to semantic equivalence with the canonical
+-- encoding, not merely to acceptance.
+
+-- Map [(I 1, I 2)]
+example : encodeData (.Map [(.I 1, .I 2)]) = .some "\xa1\x01\x02"          := by native_decide
+example : decodeData "\xa1\x01\x02"        = .some ("", .Map [(.I 1, .I 2)]) := by native_decide
+example : decodeData "\xbf\x01\x02\xff"    = .some ("", .Map [(.I 1, .I 2)]) := by native_decide
+-- Map []
+example : encodeData (.Map []) = .some "\xa0"        := by native_decide
+example : decodeData "\xa0"    = .some ("", .Map []) := by native_decide
+example : decodeData "\xbf\xff" = .some ("", .Map []) := by native_decide
+-- Constr 200 [] (index > 127 uses the tag-102 wrapper)
+example : encodeData (.Constr 200 [])   = .some "\xd8\x66\x82\x18\xc8\x80"     := by native_decide
+example : decodeData "\xd8\x66\x82\x18\xc8\x80"     = .some ("", .Constr 200 []) := by native_decide
+example : decodeData "\xd8\x66\x9f\x18\xc8\x80\xff" = .some ("", .Constr 200 []) := by native_decide
+-- Constr 200 [I 1, I 2]
+example : encodeData (.Constr 200 [.I 1, .I 2]) = .some "\xd8\x66\x82\x18\xc8\x9f\x01\x02\xff"      := by native_decide
+example : decodeData "\xd8\x66\x82\x18\xc8\x9f\x01\x02\xff"      = .some ("", .Constr 200 [.I 1, .I 2]) := by native_decide
+example : decodeData "\xd8\x66\x9f\x18\xc8\x9f\x01\x02\xff\xff"  = .some ("", .Constr 200 [.I 1, .I 2]) := by native_decide
+
+-- Inside the indefinite wrapper the args may be definite (0x82) or indefinite (0x9f), both accepted
+-- by Data.hs and both decoding identically.
+example : decodeData "\xd8\x66\x9f\x18\xc8\x82\x01\x02\xff" = .some ("", .Constr 200 [.I 1, .I 2]) := by native_decide
+-- The indefinite wrapper enforces the same structure Data.hs does: a Word64 index, exactly two
+-- elements (index and args), and a closing break. A negative index, a missing break, or a third
+-- element is rejected. Nesting an indefinite wrapper inside another decodes.
+example : decodeData "\xd8\x66\x9f\x20\x80\xff"         = .none := by native_decide
+example : decodeData "\xd8\x66\x9f\x18\xc8\x80"         = .none := by native_decide
+example : decodeData "\xd8\x66\x9f\x18\xc8\x80\x80\xff" = .none := by native_decide
+example : decodeData "\xd8\x66\x9f\x18\xc8\x9f\xd8\x66\x9f\x18\xc9\x80\xff\xff\xff" = .some ("", .Constr 200 [.Constr 201 []]) := by native_decide
+
+-- Additional Data.hs-conformance coverage. The index through the indefinite wrapper is read by a
+-- separate path (decodeIndefConstr), so anchor it at the same Word64 boundaries the definite path
+-- uses, and reject an out-of-range (bignum) index there too.
+example : decodeData "\xd8\x66\x9f\x1b\xff\xff\xff\xff\xff\xff\xff\xff\x9f\x01\xff\xff" = .some ("", .Constr (2 ^ 64 - 1) [.I 1]) := by native_decide
+example : decodeData "\xd8\x66\x9f\x1b\x80\x00\x00\x00\x00\x00\x00\x00\x80\xff" = .some ("", .Constr (2 ^ 63) []) := by native_decide
+example : decodeData "\xd8\x66\x9f\xc2\x49\x01\x00\x00\x00\x00\x00\x00\x00\x00\x80\xff" = .none := by native_decide
+-- A non-canonical small index (< 128) is valid in the wrapper too (Data.hs decodeWord64 accepts it).
+example : decodeData "\xd8\x66\x9f\x00\x80\xff" = .some ("", .Constr 0 []) := by native_decide
+-- The "exactly two elements" rule is on the OUTER wrapper array; the args list itself is any length.
+example : decodeData "\xd8\x66\x9f\x18\xc8\x83\x01\x02\x03\xff" = .some ("", .Constr 200 [.I 1, .I 2, .I 3]) := by native_decide
+-- Reject a third element or a missing break when the args is an INDEFINITE list (the other args branch).
+example : decodeData "\xd8\x66\x9f\x18\xc8\x9f\xff\x00\xff" = .none := by native_decide
+example : decodeData "\xd8\x66\x9f\x18\xc8\x9f\xff" = .none := by native_decide
+-- Indefinite maps: multiple pairs preserve order, a break between key and value is rejected, maps nest.
+example : decodeData "\xbf\x01\x02\x03\x04\xff" = .some ("", .Map [(.I 1, .I 2), (.I 3, .I 4)]) := by native_decide
+example : decodeData "\xbf\x01\xff" = .none := by native_decide
+example : decodeData "\xbf\x01\xbf\x02\x03\xff\xff" = .some ("", .Map [(.I 1, .Map [(.I 2, .I 3)])]) := by native_decide
+-- Cross-form nesting: an indefinite map inside an indefinite-wrapper constructor's args.
+example : decodeData "\xd8\x66\x9f\x18\xc8\x9f\xbf\x01\x02\xff\xff\xff" = .some ("", .Constr 200 [.Map [(.I 1, .I 2)]]) := by native_decide
+
 -- Reference fixtures: golden CBOR vectors for the shapes this PR touches (empty containers, empty
 -- bytestring, negative bignums, tag-102 indices, nesting). Each pins `encodeData` to fixed bytes
 -- and `decodeData` to invert them. The bytes are the canonical CBOR encoding mandated by the
