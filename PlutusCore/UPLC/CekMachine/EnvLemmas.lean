@@ -3,13 +3,8 @@ import PlutusCore.UPLC.CekMachine
 -- Migration of sundae-v4's `Formalization/Scratch/EnvLemma.lean` (general CEK environment/
 -- value step-indexed agreement metatheory, frozen source commit `50cd4f699` in that repo) onto
 -- this repo's positional `Environment := List CekValue` / de Bruijn `Term.Var : Nat → Term`
--- representation (PR #21, merged `e708754`). Round 1: the foundational front portion only
--- (`envLookup`, `freeVars`, the `ValueAgree`/`EnvAgreeOn` step-indexed relation and its beta-
--- extension lemma, `step_var_agree`, `step_const_agree`). The remaining `Part 7` onward
--- (`Frame`/`Stack`/`State` agreement, the per-constructor `step_agree_*` family, the builtin-
--- congruence set piece, the multi-step chaining induction, and the closing counterexample
--- refuting the fully general fixed-fuel `eval_agree` statement) is deferred to a later round,
--- see this file's own closing comment for exactly what and why.
+-- representation (PR #21, merged `e708754`), across multiple rounds. See this file's own closing
+-- comment for exactly what is translated-and-verified vs. still deferred, and why.
 --
 -- REPRESENTATION-CHANGE JUDGMENT CALLS made in this round (not mechanical renaming):
 --
@@ -1842,44 +1837,814 @@ theorem step_agree_invariant (sv : PlutusCore.Default.BuiltinSemanticsVariant)
     | Return _ _ => exact absurd h (by simp [StateAgree])
     | Halt _ => exact absurd h (by simp [StateAgree])
 
+-- ── beta_return_right_value_counterexample: unchanged from the old file's own content and
+-- purpose (a machine-checked replay confirming the fixed `VBuiltin` clause of `ValueAgree`
+-- still defeats the historical broken-clause witness), restated only against this repo's
+-- `VLam`/`Environment` shapes (`VLam` keeps its display-only `String` field even under de Bruijn
+-- indexing, per `CekValue.lean`'s own header comment; `Environment.EmptyEnvironment` becomes the
+-- empty list `[]`). ─────────────────────────────────────────────────────────────────────────────
+section BetaReturnRightValueCounterexample
+
+-- Vf1: a VBuiltin one arg short of firing AddInteger, with a well-typed accumulated arg.
+def beta_ce_Vf1 : CekValue :=
+  CekValue.VBuiltin BuiltinFun.AddInteger [CekValue.VCon (Const.Integer 5)] (.One .ArgV)
+
+-- Vf2: same b/η/arity, but the accumulated arg is a VLam instead of a VCon -- under the ORIGINAL
+-- (broken) clause this was only legal because `ValueAgree 0` (the fuel the VBuiltin clause gave
+-- its accumulated-arg list) is vacuously True for ANY pair of values.
+def beta_ce_Vf2 : CekValue :=
+  CekValue.VBuiltin BuiltinFun.AddInteger [CekValue.VLam "y" Term.Error []] (.One .ArgV)
+
+def beta_ce_V1 : CekValue := CekValue.VCon (Const.Integer 3)
+def beta_ce_V2 : CekValue := CekValue.VCon (Const.Integer 3)
+
+def beta_ce_sv : PlutusCore.Default.BuiltinSemanticsVariant := default
+
+-- Side 1 fires `evaluateBuiltinFunction` on an all-VCon list and Returns `VCon (Integer 8)`.
+#eval step beta_ce_sv
+  (State.Return (Frame.RightApplicationOfValue beta_ce_Vf1 :: ([] : Stack)) beta_ce_V1)
+-- Side 2 feeds a VLam where AddInteger's pattern needs a VCon, falls to `_ => none`, hence Error.
+#eval step beta_ce_sv
+  (State.Return (Frame.RightApplicationOfValue beta_ce_Vf2 :: ([] : Stack)) beta_ce_V2)
+
+-- CONFIRMATION the fix (`fix_ValueAgreeShape`, the conjunct added to `ValueAgree`'s `VBuiltin`
+-- clause) defeats this exact witness, same conclusion as the old file: `beta_ce_Vf1`'s
+-- accumulated element `VCon (Integer 5)` and `beta_ce_Vf2`'s `VLam "y" Term.Error []` are a
+-- `VCon`-vs-`VLam` outer-constructor mismatch, so `fix_ValueAgreeShape` refutes them
+-- unconditionally, regardless of fuel -- a genuine, checked (not `sorry`'d) proof, not a guess.
+example : ¬ ValueAgree 1 beta_ce_Vf1 beta_ce_Vf2 := by
+  simp [beta_ce_Vf1, beta_ce_Vf2, ValueAgree, fix_ValueAgreeShape]
+
+end BetaReturnRightValueCounterexample
+
+-- ── Part 9 (fuelpres_*): the fuel-GENUINITY investigation -- for each of the 13 `step_agree_*`
+-- placeholders above, does it need its uniform "hypotheses at n+1, conclusion at n" convention for
+-- REAL, or is that convention just a deliberate uniformity choice paying for something the
+-- underlying `step` case never actually costs? Every theorem below is NEW and ADDITIVE (nothing
+-- above this line is touched); every name is prefixed `fuelpres_` per the old file's own
+-- coordination rule, carried over unchanged.
+--
+-- THE ANSWER, unchanged from the old file's own finding (this is a fact about `ValueAgree`'s own
+-- recursive shape, which round 1 already established translates unchanged -- confirmed directly
+-- this round by rereading the mutual definition above, not assumed): fuel is lost at EXACTLY one
+-- structural point -- unfolding an ALREADY-WRAPPED `ValueAgree` hypothesis on a closure-shaped
+-- value (`VLam`, `VDelay`, or a `VBuiltin` with a non-empty accumulated argument list) to reach
+-- what it says about the value's OWN captured contents. `ValueAgree`'s own clauses (Part 3) always
+-- state that fact ONE level below the wrapping level (`ValueAgree (n+1) (VLam ...) (VLam ...)`
+-- unfolds to `EnvAgreeOn n (...)`, never `EnvAgreeOn (n+1)`) -- this is definitional, not a
+-- proof-search artifact, so no amount of cleverness recovers the missing level once the value is
+-- already wrapped. By contrast, CONSTRUCTING a fresh wrapped value (a fresh `VLam`/`VDelay`/
+-- `VConstr`, or a `VBuiltin` either freshly built with `[]` or re-consing onto its OWN
+-- already-agreeing accumulated list) from a RAW, not-yet-wrapped `EnvAgreeOn`/`ValueAgree`
+-- hypothesis costs NOTHING extra: if that raw hypothesis is supplied at the SAME level `N` as the
+-- wrapping value's own promised level, downgrading it ONCE (via `EnvAgreeOn_mono`/
+-- `ValueAgree_mono`) to `N - 1` for the wrapping clause's own internal need is exactly the "one
+-- level of slack" a same-level hypothesis always carries relative to a "one-level-lower" internal
+-- requirement. `FrameAgree`/`StackAgree` (Part 7a) never cost anything either way (confirmed
+-- already, that Part's own definition never forwards a downgraded level): pushing or popping a
+-- frame forwards whatever level it is given, unchanged.
+--
+-- CONSEQUENCE: "genuinely fuel-consuming" = the placeholder's own `step` equation, on some
+-- internal branch, DESTRUCTURES an already-wrapped closure-shaped `ValueAgree` hypothesis to reach
+-- an `Eval` state or a brand-new, unrelated `Return` value (i.e. it ESCAPES the wrapping
+-- structure). "Genuinely fuel-preserving" = every other branch: pure control-flow (push/pop a
+-- frame), or CONSTRUCTING a fresh wrapped value from raw hypotheses, or RE-WRAPPING an existing
+-- partial application's accumulated arguments into another `VBuiltin` of the same shape (the "one
+-- level lost unwrapping" and "one level lost wrapping again" exactly cancel). Five genuinely-costly
+-- sub-cases exist, same five as the old file found, at the same five `step` branches (this repo's
+-- `step`, read in full above/in `CekMachine.lean`, has the exact same branch structure as the old
+-- file's -- only the `Var`/`Environment` shape changed, and none of these five obstructions touch
+-- either): `VLam`-beta construction of a NEW environment (`RightApplicationOfValue`/
+-- `LeftApplicationToValue`), the `VBuiltin`-arity-JUST-exhausted `evalBuiltin`-fires sub-case (both
+-- mirror placeholders, and `ForceFrame`'s analogous sub-case), `VDelay`-pop under `ForceFrame`, and
+-- `CaseScrutinee`'s `VConstr`-scrutinee dispatch (destructuring the incoming `VConstr`'s own
+-- accumulated element list to build `folding`'s spine of `LeftApplicationToValue` frames, which --
+-- unlike `ValueAgree`/`EnvAgreeOn` -- is NOT fuel-indexed and so needs its elements at the FULL
+-- outer level, not one below it).
+
+open PlutusCore.UPLC.Builtins
+
+-- 1/13, `step_agree_lam`: CONSTRUCTS a fresh `VLam` from a raw `EnvAgreeOn` hypothesis --
+-- preserving.
+theorem fuelpres_lam_eval (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (ρ1 ρ2 : Environment) (x : String) (M : Term) (n : Nat)
+    (hs : StackAgree n s1 s2)
+    (hρ : EnvAgreeOn n (freeVars (.Lam x M)) ρ1 ρ2) :
+    StateAgree n (step sv (State.Eval s1 ρ1 (.Lam x M)))
+                 (step sv (State.Eval s2 ρ2 (.Lam x M))) := by
+  refine ⟨hs, ?_⟩
+  simp only [freeVars] at hρ
+  cases n with
+  | zero => simp [ValueAgree]
+  | succ p =>
+      unfold ValueAgree
+      exact ⟨rfl, rfl, EnvAgreeOn_mono p _ ρ1 ρ2 hρ⟩
+
+-- 2/13, `step_agree_delay`: same construction pattern as `step_agree_lam` -- preserving.
+theorem fuelpres_delay_eval (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (ρ1 ρ2 : Environment) (M : Term) (n : Nat)
+    (hs : StackAgree n s1 s2)
+    (hρ : EnvAgreeOn n (freeVars (.Delay M)) ρ1 ρ2) :
+    StateAgree n (step sv (State.Eval s1 ρ1 (.Delay M)))
+                 (step sv (State.Eval s2 ρ2 (.Delay M))) := by
+  refine ⟨hs, ?_⟩
+  simp only [freeVars] at hρ
+  cases n with
+  | zero => simp [ValueAgree]
+  | succ p =>
+      unfold ValueAgree
+      exact ⟨rfl, EnvAgreeOn_mono p _ ρ1 ρ2 hρ⟩
+
+-- 3/13, `step_agree_force_eval`: pure control flow (push `ForceFrame`, no value touched) --
+-- preserving, and in fact needs no monotonicity at all (the pushed frame and the sub-evaluation
+-- get the incoming hypotheses back verbatim).
+theorem fuelpres_force_eval (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (ρ1 ρ2 : Environment) (M : Term) (n : Nat)
+    (hs : StackAgree n s1 s2)
+    (hρ : EnvAgreeOn n (freeVars (.Force M)) ρ1 ρ2) :
+    StateAgree n (step sv (State.Eval s1 ρ1 (.Force M)))
+                 (step sv (State.Eval s2 ρ2 (.Force M))) := by
+  refine ⟨rfl, ⟨by simp [FrameAgree], hs⟩, ?_⟩
+  simpa [freeVars] using hρ
+
+-- 4/13, `step_agree_apply_eval`: pure control flow (push `LeftApplicationToTerm`) -- preserving.
+theorem fuelpres_apply_eval (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (ρ1 ρ2 : Environment) (M N : Term) (n : Nat)
+    (hs : StackAgree n s1 s2)
+    (hρ : EnvAgreeOn n (freeVars (.Apply M N)) ρ1 ρ2) :
+    StateAgree n (step sv (State.Eval s1 ρ1 (.Apply M N)))
+                 (step sv (State.Eval s2 ρ2 (.Apply M N))) := by
+  have hρ' : EnvAgreeOn n (freeVars M ++ freeVars N) ρ1 ρ2 := by simpa [freeVars] using hρ
+  have hM : EnvAgreeOn n (freeVars M) ρ1 ρ2 :=
+    envAgreeOn_subset n (freeVars M ++ freeVars N) (freeVars M) ρ1 ρ2
+      (fun i hi => List.mem_append.2 (Or.inl hi)) hρ'
+  have hN : EnvAgreeOn n (freeVars N) ρ1 ρ2 :=
+    envAgreeOn_subset n (freeVars M ++ freeVars N) (freeVars N) ρ1 ρ2
+      (fun i hi => List.mem_append.2 (Or.inr hi)) hρ'
+  show StateAgree n (State.Eval (Frame.LeftApplicationToTerm N ρ1 :: s1) ρ1 M)
+                    (State.Eval (Frame.LeftApplicationToTerm N ρ2 :: s2) ρ2 M)
+  exact ⟨rfl, ⟨⟨rfl, hN⟩, hs⟩, hM⟩
+
+-- 5/13, `step_agree_constr_eval`: `nil` builds a fresh empty-list `VConstr` (trivially preserving,
+-- vacuous elementwise clause); `cons` is pure control flow (push `ConstructorArgument`) --
+-- preserving throughout.
+theorem fuelpres_constr_eval (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (ρ1 ρ2 : Environment) (i : Nat) (Ms : List Term) (n : Nat)
+    (hs : StackAgree n s1 s2)
+    (hρ : EnvAgreeOn n (freeVars (.Constr i Ms)) ρ1 ρ2) :
+    StateAgree n (step sv (State.Eval s1 ρ1 (.Constr i Ms)))
+                 (step sv (State.Eval s2 ρ2 (.Constr i Ms))) := by
+  cases Ms with
+  | nil =>
+      show StateAgree n (State.Return s1 (CekValue.VConstr i []))
+                        (State.Return s2 (CekValue.VConstr i []))
+      refine ⟨hs, ?_⟩
+      cases n with
+      | zero => simp [ValueAgree]
+      | succ m => simp [ValueAgree]
+  | cons M' Ms' =>
+      have hρ' : EnvAgreeOn n (freeVars M' ++ freeVarsList Ms') ρ1 ρ2 := by
+        simpa [freeVars, freeVarsList] using hρ
+      have hM' : EnvAgreeOn n (freeVars M') ρ1 ρ2 :=
+        envAgreeOn_subset n (freeVars M' ++ freeVarsList Ms') (freeVars M') ρ1 ρ2
+          (fun i hi => List.mem_append.2 (Or.inl hi)) hρ'
+      have hMs' : EnvAgreeOn n (freeVarsList Ms') ρ1 ρ2 :=
+        envAgreeOn_subset n (freeVars M' ++ freeVarsList Ms') (freeVarsList Ms') ρ1 ρ2
+          (fun i hi => List.mem_append.2 (Or.inr hi)) hρ'
+      show StateAgree n (State.Eval (Frame.ConstructorArgument i [] Ms' ρ1 :: s1) ρ1 M')
+                        (State.Eval (Frame.ConstructorArgument i [] Ms' ρ2 :: s2) ρ2 M')
+      refine ⟨rfl, ⟨⟨rfl, rfl, rfl, ?_, hMs'⟩, hs⟩, hM'⟩
+      intro k h1 h2
+      simp at h1
+
+-- 6/13, `step_agree_case_eval`: pure control flow (push `CaseScrutinee`) -- preserving.
+theorem fuelpres_case_eval (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (ρ1 ρ2 : Environment) (N : Term) (Ms : List Term) (n : Nat)
+    (hs : StackAgree n s1 s2)
+    (hρ : EnvAgreeOn n (freeVars (.Case N Ms)) ρ1 ρ2) :
+    StateAgree n (step sv (State.Eval s1 ρ1 (.Case N Ms)))
+                 (step sv (State.Eval s2 ρ2 (.Case N Ms))) := by
+  have hρ' : EnvAgreeOn n (freeVars N ++ freeVarsList Ms) ρ1 ρ2 := by
+    simpa [freeVars, freeVarsList] using hρ
+  have hN : EnvAgreeOn n (freeVars N) ρ1 ρ2 :=
+    envAgreeOn_subset n (freeVars N ++ freeVarsList Ms) (freeVars N) ρ1 ρ2
+      (fun i hi => List.mem_append.2 (Or.inl hi)) hρ'
+  have hMs : EnvAgreeOn n (freeVarsList Ms) ρ1 ρ2 :=
+    envAgreeOn_subset n (freeVars N ++ freeVarsList Ms) (freeVarsList Ms) ρ1 ρ2
+      (fun i hi => List.mem_append.2 (Or.inr hi)) hρ'
+  show StateAgree n (State.Eval (Frame.CaseScrutinee Ms ρ1 :: s1) ρ1 N)
+                    (State.Eval (Frame.CaseScrutinee Ms ρ2 :: s2) ρ2 N)
+  exact ⟨rfl, ⟨⟨rfl, hMs⟩, hs⟩, hN⟩
+
+-- 7/13, `step_agree_builtin_eval`: builds `VBuiltin b [] (α b)` -- the accumulated list is `[]`,
+-- so the elementwise clause is vacuous regardless of fuel; does not even need `ρ`/`hρ` as input --
+-- preserving, and in fact fuel-independent altogether.
+theorem fuelpres_builtin_eval (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (ρ1 ρ2 : Environment) (b : BuiltinFun) (n : Nat)
+    (hs : StackAgree n s1 s2) :
+    StateAgree n (step sv (State.Eval s1 ρ1 (.Builtin b)))
+                 (step sv (State.Eval s2 ρ2 (.Builtin b))) := by
+  refine ⟨hs, ?_⟩
+  cases n with
+  | zero => simp [ValueAgree]
+  | succ p => simp [ValueAgree]
+
+-- 8/13, `step_agree_return_left_term`: pure control flow (push `RightApplicationOfValue`, `V` is
+-- never inspected) -- preserving.
+theorem fuelpres_return_left_term (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (ρ1 ρ2 : Environment) (M : Term) (V1 V2 : CekValue) (n : Nat)
+    (hs : StackAgree n s1 s2)
+    (hρ : EnvAgreeOn n (freeVars M) ρ1 ρ2)
+    (hV : ValueAgree n V1 V2) :
+    StateAgree n (step sv (State.Return (Frame.LeftApplicationToTerm M ρ1 :: s1) V1))
+                 (step sv (State.Return (Frame.LeftApplicationToTerm M ρ2 :: s2) V2)) := by
+  show StateAgree n (State.Eval (Frame.RightApplicationOfValue V1 :: s1) ρ1 M)
+                    (State.Eval (Frame.RightApplicationOfValue V2 :: s2) ρ2 M)
+  exact ⟨rfl, ⟨hV, hs⟩, hρ⟩
+
+-- ── 9/13, `step_agree_return_right_value`: split per real `step` branch on the frame's stored
+-- function value `Vf`. `VCon`/`VDelay`/`VConstr` (not callable) and the `VBuiltin` `ArgQ`-mismatch
+-- sub-cases are Error/Error unconditionally (fuel-irrelevant); `VBuiltin`'s `More`-arity (re-wrap,
+-- not escape) is preserving; `VLam`-beta and `VBuiltin`'s `One`-arity (`evalBuiltin` FIRES, escapes
+-- the wrapping) are IMPOSSIBLE at the same level -- documented below, no theorem stated for either.
+
+-- Shape predicate for `RightApplicationOfValue`/`LeftApplicationToValue`'s dispatch: a value is
+-- APPLICATION-dispatchable exactly when `step`'s real match arms for these frames do something
+-- other than fall to the wildcard `Error` arm.
+def isAppDispatchable : CekValue → Prop
+  | .VLam _ _ _ => True
+  | .VBuiltin _ _ (.One .ArgV) => True
+  | .VBuiltin _ _ (.More .ArgV _) => True
+  | _ => False
+
+private theorem step_return_right_value_error_of_not_dispatchable
+    (sv : PlutusCore.Default.BuiltinSemanticsVariant) (s : Stack) (Vf V : CekValue)
+    (h : ¬ isAppDispatchable Vf) :
+    step sv (State.Return (Frame.RightApplicationOfValue Vf :: s) V) = State.Error := by
+  cases Vf with
+  | VCon _ => simp [step]
+  | VDelay _ _ => simp [step]
+  | VConstr _ _ => simp [step]
+  | VLam _ _ _ => exact absurd (by simp [isAppDispatchable]) h
+  | VBuiltin b vs η =>
+      cases η with
+      | One ι =>
+          cases ι with
+          | ArgV => exact absurd (by simp [isAppDispatchable]) h
+          | ArgQ => simp [step]
+      | More ι η' =>
+          cases ι with
+          | ArgV => exact absurd (by simp [isAppDispatchable]) h
+          | ArgQ => simp [step]
+
+theorem fuelpres_return_right_value_wildcard (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (Vf1 Vf2 V1 V2 : CekValue) (n : Nat)
+    (h1 : ¬ isAppDispatchable Vf1) (h2 : ¬ isAppDispatchable Vf2) :
+    StateAgree n (step sv (State.Return (Frame.RightApplicationOfValue Vf1 :: s1) V1))
+                 (step sv (State.Return (Frame.RightApplicationOfValue Vf2 :: s2) V2)) := by
+  rw [step_return_right_value_error_of_not_dispatchable sv s1 Vf1 V1 h1,
+      step_return_right_value_error_of_not_dispatchable sv s2 Vf2 V2 h2]
+  simp [StateAgree]
+
+-- `VBuiltin` arity NOT YET exhausted: `V` is consed onto the accumulated list and a NEW `VBuiltin`
+-- (same remaining arity `η'`) is re-wrapped -- unwrapping `hV1/hV2`'s own agreement one level below
+-- `n` (forced) and re-wrapping at `n` (needing exactly one level below `n`) cancel exactly.
+theorem fuelpres_return_right_value_vbuiltin_more_argv
+    (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (b : BuiltinFun) (vs1 vs2 : List CekValue) (η' : ExpectedBuiltinArgs)
+    (V1 V2 : CekValue) (n : Nat)
+    (hs : StackAgree n s1 s2)
+    (hlen : vs1.length = vs2.length)
+    (hpt : ∀ k (h1 : k < vs1.length) (h2 : k < vs2.length), ValueAgree n (vs1[k]) (vs2[k]))
+    (hshape : ∀ k (h1 : k < vs1.length) (h2 : k < vs2.length), fix_ValueAgreeShape (vs1[k]) (vs2[k]))
+    (hV : ValueAgree n V1 V2) :
+    StateAgree n
+      (step sv (State.Return
+        (Frame.RightApplicationOfValue (CekValue.VBuiltin b vs1 (.More .ArgV η')) :: s1) V1))
+      (step sv (State.Return
+        (Frame.RightApplicationOfValue (CekValue.VBuiltin b vs2 (.More .ArgV η')) :: s2) V2)) := by
+  simp only [step]
+  refine ⟨hs, ?_⟩
+  cases n with
+  | zero => simp [ValueAgree]
+  | succ m =>
+      unfold ValueAgree
+      refine ⟨rfl, rfl, ?_, ?_, ?_⟩
+      · simp [hlen]
+      · intro k hk1 hk2
+        cases k with
+        | zero => exact ValueAgree_mono m V1 V2 hV
+        | succ k' =>
+            have hk1' : k' < vs1.length := by simpa using hk1
+            have hk2' : k' < vs2.length := by simpa using hk2
+            exact ValueAgree_mono m _ _ (hpt k' hk1' hk2')
+      · intro k hk1 hk2
+        cases k with
+        | zero => exact fix_valueAgree_shape m V1 V2 hV
+        | succ k' =>
+            have hk1' : k' < vs1.length := by simpa using hk1
+            have hk2' : k' < vs2.length := by simpa using hk2
+            exact hshape k' hk1' hk2'
+
+-- OBSTRUCTION 1/5 (`VLam`-beta, `step_agree_return_right_value`'s hardest sub-case): the real
+-- `step` equation is `Return (RightApplicationOfValue (VLam x M ρ1)) V1 => Eval s1 (V1 :: ρ1) M`.
+-- Proving `StateAgree N` of the two resulting `Eval` states needs `EnvAgreeOn N (freeVars M)
+-- (V1 :: ρ1) (V2 :: ρ2)`, which by `beta_envAgreeOn_extend` needs BOTH `EnvAgreeOn N
+-- (freeVarsUnderBinder (freeVars M)) ρ1 ρ2` and `ValueAgree N V1 V2` AT THE SAME LEVEL `N`. But the
+-- only route to the first fact is unfolding the ALREADY-WRAPPED hypothesis `ValueAgree N (VLam x M
+-- ρ1) (VLam x M ρ2)` via `ValueAgree`'s own `VLam` clause -- for wrapping level `N = n+1`, this
+-- gives `EnvAgreeOn n (...) = EnvAgreeOn (N-1) (...)`, ONE LEVEL BELOW `N`, definitionally, with no
+-- other route to more. `EnvAgreeOn_mono` only ever goes DOWNWARD, so there is no way to promote the
+-- extracted `EnvAgreeOn (N-1)` fact back up to the `EnvAgreeOn N` `beta_envAgreeOn_extend` needs.
+-- The achievable output is therefore `StateAgree (N-1)`, exactly the ORIGINAL placeholder's own
+-- "(n+1) hypothesis to n conclusion" shape restated with `N = n+1` -- confirming the loss here is
+-- real, not an artifact of the uniform convention, and unchanged from the old file's finding (this
+-- entire argument is about `ValueAgree`'s own recursive shape, not about `Var`/`Environment`
+-- representation).
+
+-- OBSTRUCTION 2/5 (`VBuiltin` arity JUST exhausted, `One`/`ArgV`, `evalBuiltin` FIRES): the real
+-- equation is `Return (RightApplicationOfValue (VBuiltin b vs1 (One ArgV))) V1 => evalBuiltin sv s1
+-- b (V1 :: vs1)`, an ESCAPE from the wrapping `VBuiltin` structure into a brand-new value with no
+-- `VBuiltin` wrapper left to "give back" a level to. `bcong_evalBuiltin_agree` (Part 8, confirmed
+-- above to be level-PRESERVING, same `n` in and out) is itself not the bottleneck: the loss is
+-- entirely upstream, in what level `vs1`/`vs2`'s own pointwise agreement can be extracted at --
+-- `ValueAgree`'s `VBuiltin` clause gives the accumulated list's elements at `ValueAgree n` for a
+-- WRAPPING level `n+1`, again ONE LEVEL BELOW the wrapping hypothesis's own level `N`, forced, with
+-- no route to `N` itself (the freshly-applied `V1`/`V2` are no better: they arrive at `ValueAgree
+-- N` directly, one level ABOVE what `vs1` can supply, so combining them into one pointwise fact
+-- over `V1 :: vs1` forces the whole list down to the WEAKER `vs1` ceiling, `N - 1`). So the
+-- combined input to `bcong_evalBuiltin_agree` is capped at `N - 1`, and so is its output --
+-- `StateAgree (N - 1)`, not `StateAgree N`. Same mechanism as the `VLam`-beta case (destructuring
+-- an already-wrapped closure-shaped value), just on `VBuiltin`'s accumulated-argument field instead
+-- of `VLam`'s captured environment.
+
+-- ── 10/13, `step_agree_return_left_value`: the MIRROR of #9 above (the returned value `V` plays
+-- the "function" role, the frame's stored value `Vf` plays the "argument" role) -- identical fuel
+-- genuinity split, same two obstructions (`VLam`-beta, `VBuiltin` `One`/`ArgV`-fires), for the
+-- exact same reasons with the two roles swapped; not re-derived in full, only restated as
+-- theorems.
+
+private theorem step_return_left_value_error_of_not_dispatchable
+    (sv : PlutusCore.Default.BuiltinSemanticsVariant) (s : Stack) (Vf V : CekValue)
+    (h : ¬ isAppDispatchable V) :
+    step sv (State.Return (Frame.LeftApplicationToValue Vf :: s) V) = State.Error := by
+  cases V with
+  | VCon _ => simp [step]
+  | VDelay _ _ => simp [step]
+  | VConstr _ _ => simp [step]
+  | VLam _ _ _ => exact absurd (by simp [isAppDispatchable]) h
+  | VBuiltin b vs η =>
+      cases η with
+      | One ι =>
+          cases ι with
+          | ArgV => exact absurd (by simp [isAppDispatchable]) h
+          | ArgQ => simp [step]
+      | More ι η' =>
+          cases ι with
+          | ArgV => exact absurd (by simp [isAppDispatchable]) h
+          | ArgQ => simp [step]
+
+theorem fuelpres_return_left_value_wildcard (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (Vf1 Vf2 V1 V2 : CekValue) (n : Nat)
+    (h1 : ¬ isAppDispatchable V1) (h2 : ¬ isAppDispatchable V2) :
+    StateAgree n (step sv (State.Return (Frame.LeftApplicationToValue Vf1 :: s1) V1))
+                 (step sv (State.Return (Frame.LeftApplicationToValue Vf2 :: s2) V2)) := by
+  rw [step_return_left_value_error_of_not_dispatchable sv s1 Vf1 V1 h1,
+      step_return_left_value_error_of_not_dispatchable sv s2 Vf2 V2 h2]
+  simp [StateAgree]
+
+theorem fuelpres_return_left_value_vbuiltin_more_argv
+    (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (Vf1 Vf2 : CekValue) (b : BuiltinFun) (vs1 vs2 : List CekValue)
+    (η' : ExpectedBuiltinArgs) (n : Nat)
+    (hs : StackAgree n s1 s2)
+    (hlen : vs1.length = vs2.length)
+    (hpt : ∀ k (h1 : k < vs1.length) (h2 : k < vs2.length), ValueAgree n (vs1[k]) (vs2[k]))
+    (hshape : ∀ k (h1 : k < vs1.length) (h2 : k < vs2.length), fix_ValueAgreeShape (vs1[k]) (vs2[k]))
+    (hVf : ValueAgree n Vf1 Vf2) :
+    StateAgree n
+      (step sv (State.Return (Frame.LeftApplicationToValue Vf1 :: s1)
+        (CekValue.VBuiltin b vs1 (.More .ArgV η'))))
+      (step sv (State.Return (Frame.LeftApplicationToValue Vf2 :: s2)
+        (CekValue.VBuiltin b vs2 (.More .ArgV η')))) := by
+  simp only [step]
+  refine ⟨hs, ?_⟩
+  cases n with
+  | zero => simp [ValueAgree]
+  | succ m =>
+      unfold ValueAgree
+      refine ⟨rfl, rfl, ?_, ?_, ?_⟩
+      · simp [hlen]
+      · intro k hk1 hk2
+        cases k with
+        | zero => exact ValueAgree_mono m Vf1 Vf2 hVf
+        | succ k' =>
+            have hk1' : k' < vs1.length := by simpa using hk1
+            have hk2' : k' < vs2.length := by simpa using hk2
+            exact ValueAgree_mono m _ _ (hpt k' hk1' hk2')
+      · intro k hk1 hk2
+        cases k with
+        | zero => exact fix_valueAgree_shape m Vf1 Vf2 hVf
+        | succ k' =>
+            have hk1' : k' < vs1.length := by simpa using hk1
+            have hk2' : k' < vs2.length := by simpa using hk2
+            exact hshape k' hk1' hk2'
+
+-- ── 11/13, `step_agree_return_force`: split per real `step` branch on the popped value `V`.
+-- `VCon`/`VConstr`/`VLam` (not `Force`-able) and the `VBuiltin` `ArgV`-mismatch sub-cases are
+-- Error/Error unconditionally; `VBuiltin`'s `More`-arity (re-wrap, `ArgQ` succeeds without firing)
+-- is preserving; `VDelay`-pop and `VBuiltin`'s `One`/`ArgQ` (`evalBuiltin` FIRES) are IMPOSSIBLE at
+-- the same level -- documented below.
+
+-- Shape predicate for `ForceFrame`'s dispatch: dispatchable shapes are `VDelay` or a `VBuiltin`
+-- next expecting a quoted argument (`ArgQ`); everything else falls to the wildcard `Error` arm.
+def isForceDispatchable : CekValue → Prop
+  | .VDelay _ _ => True
+  | .VBuiltin _ _ (.One .ArgQ) => True
+  | .VBuiltin _ _ (.More .ArgQ _) => True
+  | _ => False
+
+private theorem step_return_force_error_of_not_dispatchable
+    (sv : PlutusCore.Default.BuiltinSemanticsVariant) (s : Stack) (V : CekValue)
+    (h : ¬ isForceDispatchable V) :
+    step sv (State.Return (Frame.ForceFrame :: s) V) = State.Error := by
+  cases V with
+  | VCon _ => simp [step]
+  | VConstr _ _ => simp [step]
+  | VLam _ _ _ => simp [step]
+  | VDelay _ _ => exact absurd (by simp [isForceDispatchable]) h
+  | VBuiltin b vs η =>
+      cases η with
+      | One ι =>
+          cases ι with
+          | ArgQ => exact absurd (by simp [isForceDispatchable]) h
+          | ArgV => simp [step]
+      | More ι η' =>
+          cases ι with
+          | ArgQ => exact absurd (by simp [isForceDispatchable]) h
+          | ArgV => simp [step]
+
+theorem fuelpres_return_force_wildcard (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (V1 V2 : CekValue) (n : Nat)
+    (h1 : ¬ isForceDispatchable V1) (h2 : ¬ isForceDispatchable V2) :
+    StateAgree n (step sv (State.Return (Frame.ForceFrame :: s1) V1))
+                 (step sv (State.Return (Frame.ForceFrame :: s2) V2)) := by
+  rw [step_return_force_error_of_not_dispatchable sv s1 V1 h1,
+      step_return_force_error_of_not_dispatchable sv s2 V2 h2]
+  simp [StateAgree]
+
+-- `VBuiltin` arity not yet exhausted under `Force`/`ArgQ`: the accumulated list `vs1`/`vs2` is
+-- RE-WRAPPED unchanged into `VBuiltin b vs1 η'` -- no fresh value is consed (Force supplies
+-- nothing), so unwrapping (`vs1` capped one level below the popped value's own level `n`, forced)
+-- and re-wrapping (needing exactly one level below the OUTPUT's level `n`) cancel exactly, same
+-- mechanism as `fuelpres_return_right_value_vbuiltin_more_argv` above.
+theorem fuelpres_return_force_vbuiltin_more_argq (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (b : BuiltinFun) (vs1 vs2 : List CekValue) (η' : ExpectedBuiltinArgs) (n : Nat)
+    (hs : StackAgree n s1 s2)
+    (hlen : vs1.length = vs2.length)
+    (hpt : ∀ k (h1 : k < vs1.length) (h2 : k < vs2.length), ValueAgree n (vs1[k]) (vs2[k]))
+    (hshape : ∀ k (h1 : k < vs1.length) (h2 : k < vs2.length), fix_ValueAgreeShape (vs1[k]) (vs2[k])) :
+    StateAgree n
+      (step sv (State.Return (Frame.ForceFrame :: s1)
+        (CekValue.VBuiltin b vs1 (.More .ArgQ η'))))
+      (step sv (State.Return (Frame.ForceFrame :: s2)
+        (CekValue.VBuiltin b vs2 (.More .ArgQ η')))) := by
+  simp only [step]
+  refine ⟨hs, ?_⟩
+  cases n with
+  | zero => simp [ValueAgree]
+  | succ m =>
+      unfold ValueAgree
+      refine ⟨rfl, rfl, hlen, ?_, ?_⟩
+      · intro k hk1 hk2; exact ValueAgree_mono m _ _ (hpt k hk1 hk2)
+      · intro k hk1 hk2; exact hshape k hk1 hk2
+
+-- OBSTRUCTION 3/5 (`VDelay`-pop): `Return (ForceFrame :: s) (VDelay M ρ1) => Eval s ρ1 M`, needing
+-- `EnvAgreeOn N (freeVars M) ρ1 ρ2`. The only route is unfolding the already-wrapped `ValueAgree N
+-- (VDelay M ρ1) (VDelay M ρ2)` via `ValueAgree`'s `VDelay` clause: wrapping level `N = n+1` gives
+-- `EnvAgreeOn n (...) = EnvAgreeOn (N-1) (...)`, one level below `N`, definitionally, with (as in
+-- `VLam`-beta above) no route back up via `EnvAgreeOn_mono`. Best achievable: `StateAgree (N-1)`.
+--
+-- OBSTRUCTION 4/5 (`VBuiltin` arity JUST exhausted, `One`/`ArgQ`, `evalBuiltin` FIRES -- the exact
+-- analogue of Obstruction 2/5 above but without even a freshly-applied value to combine): `Return
+-- (ForceFrame :: s) (VBuiltin b vs1 (One ArgQ)) => evalBuiltin sv s b vs1`, an escape from the
+-- `VBuiltin` wrapper into a brand-new value. `vs1`/`vs2`'s own pointwise agreement is capped at
+-- `N - 1` by `ValueAgree`'s `VBuiltin` clause for the SAME reason as Obstruction 2/5 (wrapping
+-- level `N` only ever gives elements at `N - 1`), so `bcong_evalBuiltin_agree`'s output is capped
+-- at `N - 1` too. Best achievable: `StateAgree (N-1)`.
+
+-- 12/13, `step_agree_return_constr_arg`: BOTH real `step` equations CONSTRUCT (never destructure
+-- an already-wrapped value) -- "continue" pushes a fresh `ConstructorArgument` frame holding
+-- `V1 :: Vs1` (Frame agreement is fuel-free, needs its elements at the SAME level as the frame
+-- itself, exactly what a same-level `hV`/`hVs` already supplies); "finish" builds a fresh
+-- `VConstr` from `V1 :: Vs1` (needs elements one level below the NEW value's own wrapping level,
+-- again exactly what a same-level hypothesis has slack for) -- preserving throughout, no
+-- obstruction.
+theorem fuelpres_return_constr_arg (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (ρ1 ρ2 : Environment) (i : Nat)
+    (Vs1 Vs2 : List CekValue) (Ms : List Term) (V1 V2 : CekValue) (n : Nat)
+    (hs : StackAgree n s1 s2)
+    (hρ : EnvAgreeOn n (freeVarsList Ms) ρ1 ρ2)
+    (hVsLen : Vs1.length = Vs2.length)
+    (hVs : ∀ k (h1 : k < Vs1.length) (h2 : k < Vs2.length), ValueAgree n (Vs1[k]) (Vs2[k]))
+    (hV : ValueAgree n V1 V2) :
+    StateAgree n (step sv (State.Return (Frame.ConstructorArgument i Vs1 Ms ρ1 :: s1) V1))
+                 (step sv (State.Return (Frame.ConstructorArgument i Vs2 Ms ρ2 :: s2) V2)) := by
+  cases Ms with
+  | cons M' Ms' =>
+      show StateAgree n (State.Eval (Frame.ConstructorArgument i (V1 :: Vs1) Ms' ρ1 :: s1) ρ1 M')
+                        (State.Eval (Frame.ConstructorArgument i (V2 :: Vs2) Ms' ρ2 :: s2) ρ2 M')
+      have hVsLen' : (V1 :: Vs1).length = (V2 :: Vs2).length := by simpa using hVsLen
+      have hVs' : ∀ k (h1 : k < (V1 :: Vs1).length) (h2 : k < (V2 :: Vs2).length),
+          ValueAgree n ((V1 :: Vs1)[k]) ((V2 :: Vs2)[k]) := by
+        intro k h1 h2
+        cases k with
+        | zero => exact hV
+        | succ k' =>
+            have hk1' : k' < Vs1.length := by simpa using h1
+            have hk2' : k' < Vs2.length := by simpa using h2
+            exact hVs k' hk1' hk2'
+      have hflv : freeVarsList (M' :: Ms') = freeVars M' ++ freeVarsList Ms' := by
+        simp [freeVarsList]
+      have hsub1 : freeVars M' ⊆ freeVarsList (M' :: Ms') := by
+        rw [hflv]; exact List.subset_append_left _ _
+      have hsub2 : freeVarsList Ms' ⊆ freeVarsList (M' :: Ms') := by
+        rw [hflv]; exact List.subset_append_right _ _
+      have hρ1 : EnvAgreeOn n (freeVars M') ρ1 ρ2 :=
+        envAgreeOn_subset n _ _ ρ1 ρ2 hsub1 hρ
+      have hρ2 : EnvAgreeOn n (freeVarsList Ms') ρ1 ρ2 :=
+        envAgreeOn_subset n _ _ ρ1 ρ2 hsub2 hρ
+      exact ⟨rfl, ⟨⟨rfl, rfl, hVsLen', hVs', hρ2⟩, hs⟩, hρ1⟩
+  | nil =>
+      show StateAgree n (State.Return s1 (CekValue.VConstr i (List.reverse (V1 :: Vs1))))
+                        (State.Return s2 (CekValue.VConstr i (List.reverse (V2 :: Vs2))))
+      cases n with
+      | zero => exact ⟨hs, by simp [ValueAgree]⟩
+      | succ m =>
+          refine ⟨hs, ?_⟩
+          have hVsLen' : (V1 :: Vs1).length = (V2 :: Vs2).length := by simpa using hVsLen
+          have hVs' : ∀ k (h1 : k < (V1 :: Vs1).length) (h2 : k < (V2 :: Vs2).length),
+              ValueAgree m ((V1 :: Vs1)[k]) ((V2 :: Vs2)[k]) := by
+            intro k h1 h2
+            cases k with
+            | zero => exact ValueAgree_mono m V1 V2 hV
+            | succ k' =>
+                have hk1' : k' < Vs1.length := by simpa using h1
+                have hk2' : k' < Vs2.length := by simpa using h2
+                exact ValueAgree_mono m _ _ (hVs k' hk1' hk2')
+          obtain ⟨hlenR, hptR⟩ := retdispatch_reverse_agree m (V1 :: Vs1) (V2 :: Vs2) hVsLen' hVs'
+          show ValueAgree (m + 1) (CekValue.VConstr i (List.reverse (V1 :: Vs1)))
+                                  (CekValue.VConstr i (List.reverse (V2 :: Vs2)))
+          unfold ValueAgree
+          exact ⟨rfl, hlenR, hptR⟩
+
+-- ── 13/13, `step_agree_return_case_scrutinee`: split per real `step` branch on the popped
+-- scrutinee value `V`. `VDelay`/`VLam`/`VBuiltin` (not `Case`-dispatchable) are Error/Error
+-- unconditionally; the 8 `VCon`-constant "caseBuiltin" dispatches are preserving (their spine
+-- values, where they push one, are FRESHLY built from the literally-equal decoded constant
+-- fields, reflexively agreeing at ANY level, never destructured from an already-wrapped
+-- hypothesis); `VConstr`-dispatch is IMPOSSIBLE at the same level -- documented below.
+
+-- Same-level replacements for `retdispatch_case_builtin_no_fold`/`_fold` (which take their own
+-- `EnvAgreeOn` hypothesis at `n + 1`, matching the placeholder's uniform convention): identical
+-- content, just without the trailing `EnvAgreeOn_mono` downgrade, since here the hypothesis
+-- already arrives at the conclusion's own level `n`.
+private theorem fuelpres_case_builtin_no_fold (n : Nat) (s1 s2 : Stack) (ρ1 ρ2 : Environment)
+    (Ms : List Term) (idx : Nat)
+    (hs' : StackAgree n s1 s2) (hρ' : EnvAgreeOn n (freeVarsList Ms) ρ1 ρ2) :
+    StateAgree n (match Ms[idx]? with
+                  | some mi => State.Eval s1 ρ1 mi
+                  | none => State.Error)
+                 (match Ms[idx]? with
+                  | some mi => State.Eval s2 ρ2 mi
+                  | none => State.Error) := by
+  cases hmi : Ms[idx]? with
+  | none => simp [StateAgree]
+  | some mi =>
+      have hmiMem : mi ∈ Ms := List.mem_of_getElem? hmi
+      have hsubMi : freeVars mi ⊆ freeVarsList Ms :=
+        retdispatch_freeVars_subset_freeVarsList mi Ms hmiMem
+      exact ⟨rfl, hs', envAgreeOn_subset n (freeVarsList Ms) (freeVars mi) ρ1 ρ2 hsubMi hρ'⟩
+
+private theorem fuelpres_case_builtin_fold (n : Nat) (s1 s2 : Stack) (ρ1 ρ2 : Environment)
+    (Ms : List Term) (Vs : List CekValue) (idx : Nat)
+    (hs' : StackAgree n s1 s2) (hρ' : EnvAgreeOn n (freeVarsList Ms) ρ1 ρ2)
+    (hrefl : ∀ v ∈ Vs, ValueAgree n v v) :
+    StateAgree n (match Ms[idx]? with
+                  | some mi => State.Eval (step.folding Vs s1) ρ1 mi
+                  | none => State.Error)
+                 (match Ms[idx]? with
+                  | some mi => State.Eval (step.folding Vs s2) ρ2 mi
+                  | none => State.Error) := by
+  cases hmi : Ms[idx]? with
+  | none => simp [StateAgree]
+  | some mi =>
+      have hmiMem : mi ∈ Ms := List.mem_of_getElem? hmi
+      have hsubMi : freeVars mi ⊆ freeVarsList Ms :=
+        retdispatch_freeVars_subset_freeVarsList mi Ms hmiMem
+      refine ⟨rfl, ?_, envAgreeOn_subset n (freeVarsList Ms) (freeVars mi) ρ1 ρ2 hsubMi hρ'⟩
+      have hpt : ∀ k (h1 : k < Vs.length) (h2 : k < Vs.length), ValueAgree n (Vs[k]) (Vs[k]) :=
+        fun k h1 _ => hrefl (Vs[k]) (List.getElem_mem h1)
+      exact retdispatch_folding_agree n Vs Vs s1 s2 rfl hpt hs'
+
+-- Shape predicate for `CaseScrutinee`'s dispatch: dispatchable shapes are `VConstr` and `VCon`
+-- (the latter dispatches further, per-constant, inside `fuelpres_return_case_scrutinee_vcon`
+-- below); `VDelay`, `VLam`, and any `VBuiltin` all fall to the wildcard `Error` arm.
+def isCaseDispatchable : CekValue → Prop
+  | .VConstr _ _ => True
+  | .VCon _ => True
+  | _ => False
+
+private theorem step_return_case_scrutinee_error_of_not_dispatchable
+    (sv : PlutusCore.Default.BuiltinSemanticsVariant) (s : Stack) (ρ : Environment)
+    (Ms : List Term) (V : CekValue) (h : ¬ isCaseDispatchable V) :
+    step sv (State.Return (Frame.CaseScrutinee Ms ρ :: s) V) = State.Error := by
+  cases V with
+  | VDelay _ _ => simp [step]
+  | VLam _ _ _ => simp [step]
+  | VBuiltin _ _ _ => simp [step]
+  | VCon _ => exact absurd (by simp [isCaseDispatchable]) h
+  | VConstr _ _ => exact absurd (by simp [isCaseDispatchable]) h
+
+theorem fuelpres_return_case_scrutinee_wildcard (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (ρ1 ρ2 : Environment) (Ms : List Term) (V1 V2 : CekValue) (n : Nat)
+    (h1 : ¬ isCaseDispatchable V1) (h2 : ¬ isCaseDispatchable V2) :
+    StateAgree n (step sv (State.Return (Frame.CaseScrutinee Ms ρ1 :: s1) V1))
+                 (step sv (State.Return (Frame.CaseScrutinee Ms ρ2 :: s2) V2)) := by
+  rw [step_return_case_scrutinee_error_of_not_dispatchable sv s1 ρ1 Ms V1 h1,
+      step_return_case_scrutinee_error_of_not_dispatchable sv s2 ρ2 Ms V2 h2]
+  simp [StateAgree]
+
+theorem fuelpres_return_case_scrutinee_vcon (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s1 s2 : Stack) (ρ1 ρ2 : Environment) (Ms : List Term) (c : PlutusCore.UPLC.Term.Const)
+    (n : Nat)
+    (hs : StackAgree n s1 s2)
+    (hρ : EnvAgreeOn n (freeVarsList Ms) ρ1 ρ2) :
+    StateAgree n (step sv (State.Return (Frame.CaseScrutinee Ms ρ1 :: s1) (CekValue.VCon c)))
+                 (step sv (State.Return (Frame.CaseScrutinee Ms ρ2 :: s2) (CekValue.VCon c))) := by
+  cases c with
+  | Integer m =>
+      simp only [step]
+      rcases Bool.eq_false_or_eq_true (0 ≤ m && m.toNat < Ms.length) with heq | heq
+      · simp only [heq, if_true]
+        exact fuelpres_case_builtin_no_fold n s1 s2 ρ1 ρ2 Ms m.toNat hs hρ
+      · simp [heq, StateAgree]
+  | Bool b =>
+      cases b with
+      | false =>
+          simp only [step]
+          by_cases hlen : Ms.length == 1 || Ms.length == 2
+          · simp only [hlen, if_true]
+            exact fuelpres_case_builtin_no_fold n s1 s2 ρ1 ρ2 Ms 0 hs hρ
+          · simp [hlen, StateAgree]
+      | true =>
+          simp only [step]
+          by_cases hlen : Ms.length == 2
+          · simp only [hlen, if_true]
+            exact fuelpres_case_builtin_no_fold n s1 s2 ρ1 ρ2 Ms 1 hs hρ
+          · simp [hlen, StateAgree]
+  | Unit =>
+      simp only [step]
+      by_cases hlen : Ms.length == 1
+      · simp only [hlen, if_true]
+        exact fuelpres_case_builtin_no_fold n s1 s2 ρ1 ρ2 Ms 0 hs hρ
+      · simp [hlen, StateAgree]
+  | Pair p =>
+      simp only [step]
+      by_cases hlen : Ms.length == 1
+      · simp only [hlen, if_true]
+        exact fuelpres_case_builtin_fold n s1 s2 ρ1 ρ2 Ms
+          [CekValue.VCon p.1, CekValue.VCon p.2] 0
+          hs hρ (retdispatch_valueAgree_refl_vcon_pair n p.1 p.2)
+      · simp [hlen, StateAgree]
+  | PairData p =>
+      simp only [step]
+      by_cases hlen : Ms.length == 1
+      · simp only [hlen, if_true]
+        exact fuelpres_case_builtin_fold n s1 s2 ρ1 ρ2 Ms
+          [CekValue.VCon (Const.Data p.1), CekValue.VCon (Const.Data p.2)] 0
+          hs hρ (retdispatch_valueAgree_refl_vcon_pair n (Const.Data p.1) (Const.Data p.2))
+      · simp [hlen, StateAgree]
+  | ConstList l =>
+      cases l with
+      | nil =>
+          simp only [step]
+          by_cases hlen : Ms.length == 2
+          · simp only [hlen, if_true]
+            exact fuelpres_case_builtin_no_fold n s1 s2 ρ1 ρ2 Ms 1 hs hρ
+          · simp [hlen, StateAgree]
+      | cons c cs =>
+          simp only [step]
+          by_cases hlen : Ms.length == 1 || Ms.length == 2
+          · simp only [hlen, if_true]
+            exact fuelpres_case_builtin_fold n s1 s2 ρ1 ρ2 Ms
+              [CekValue.VCon c, CekValue.VCon (Const.ConstList cs)] 0
+              hs hρ (retdispatch_valueAgree_refl_vcon_pair n c (Const.ConstList cs))
+          · simp [hlen, StateAgree]
+  | ConstDataList l =>
+      cases l with
+      | nil =>
+          simp only [step]
+          by_cases hlen : Ms.length == 2
+          · simp only [hlen, if_true]
+            exact fuelpres_case_builtin_no_fold n s1 s2 ρ1 ρ2 Ms 1 hs hρ
+          · simp [hlen, StateAgree]
+      | cons c cs =>
+          simp only [step]
+          by_cases hlen : Ms.length == 1 || Ms.length == 2
+          · simp only [hlen, if_true]
+            exact fuelpres_case_builtin_fold n s1 s2 ρ1 ρ2 Ms
+              [CekValue.VCon (Const.Data c), CekValue.VCon (Const.ConstDataList cs)] 0
+              hs hρ (retdispatch_valueAgree_refl_vcon_pair n (Const.Data c) (Const.ConstDataList cs))
+          · simp [hlen, StateAgree]
+  | ConstPairDataList l =>
+      cases l with
+      | nil =>
+          simp only [step]
+          by_cases hlen : Ms.length == 2
+          · simp only [hlen, if_true]
+            exact fuelpres_case_builtin_no_fold n s1 s2 ρ1 ρ2 Ms 1 hs hρ
+          · simp [hlen, StateAgree]
+      | cons c cs =>
+          simp only [step]
+          by_cases hlen : Ms.length == 1 || Ms.length == 2
+          · simp only [hlen, if_true]
+            exact fuelpres_case_builtin_fold n s1 s2 ρ1 ρ2 Ms
+              [CekValue.VCon (Const.PairData c), CekValue.VCon (Const.ConstPairDataList cs)] 0
+              hs hρ (retdispatch_valueAgree_refl_vcon_pair n (Const.PairData c)
+                (Const.ConstPairDataList cs))
+          · simp [hlen, StateAgree]
+  | ByteString _ => simp [step, StateAgree]
+  | String _ => simp [step, StateAgree]
+  | Data _ => simp [step, StateAgree]
+  | Bls12_381_G1_element _ => simp [step, StateAgree]
+  | Bls12_381_G2_element _ => simp [step, StateAgree]
+  | Bls12_381_MlResult _ => simp [step, StateAgree]
+
+-- OBSTRUCTION 5/5 (`VConstr`-scrutinee dispatch): `Return (CaseScrutinee Ms ρ1 :: s) (VConstr i
+-- vs1) => Eval (folding vs1 s) ρ1 mi` (via `Ms[i]?`). The elements `vs1`/`vs2` are destructured
+-- from the ALREADY-WRAPPED hypothesis `ValueAgree N (VConstr i vs1) (VConstr i vs2)` --
+-- `ValueAgree`'s `VConstr` clause (deliberately left with the SAME "one level below wrapping"
+-- shape as `VBuiltin`) gives `vs1`/`vs2` agreement at `N - 1` only, forced, for the same reason as
+-- every other destructuring case above. Unlike the earlier obstructions, though, the consumer here
+-- is NOT `ValueAgree`/`EnvAgreeOn` (which would happily accept `N - 1` for its own next wrapping
+-- level) -- it is `StackAgree`/`FrameAgree` (`step.folding` builds `LeftApplicationToValue`
+-- frames, and `FrameAgree`'s own clause for that constructor needs `ValueAgree n` at EXACTLY its
+-- own outer level `n`, NOT `n - 1`, since `Frame`/`Stack` agreement is -- deliberately -- NOT
+-- fuel-indexed at all). So the conclusion `StateAgree N (Eval (folding vs1 s1) ρ1 mi) (...)` needs
+-- `StackAgree N (folding vs1 s1) (folding vs2 s2)`, which needs `vs1`/`vs2` agreement at the FULL
+-- level `N`, but only `N - 1` is available. Best achievable: `StateAgree (N - 1)`. (This is exactly
+-- the reason the same-level companion fails here while the uniform `(n+1) -> n` placeholder
+-- succeeds: the uniform convention's extra "+1" of slack is precisely what was masking this cost.)
+
 end PlutusCore.UPLC.CekMachine.EnvLemmas
 
--- ── ROUND 1 SCOPE, honestly stated ──────────────────────────────────────────────────────────
+-- ── CUMULATIVE SCOPE (rounds 1-3), honestly stated -- status only, no difficulty/effort prose
+-- (per this project's own "file headers assert only checkable facts" discipline); a stale prior
+-- version of this comment (round-1-only) has been replaced here rather than left to drift. ──────
 --
--- TRANSLATED AND VERIFIED (this file, zero `sorry`, zero `error`, confirmed by a real
--- `lake build`, 26 declarations): `envLookup`, `freeVarsUnderBinder`/`freeVars`/`freeVarsList`,
--- `fix_ValueAgreeShape`, the `ValueAgree`/`EnvAgreeOn` mutual step-indexed relation,
--- `fix_valueAgree_shape`, `beta_envAgreeOn_extend`, `step_var_agree`, `step_const_agree` (old
--- Parts 1-6); the fuel-monotonicity pair `ValueAgree_mono`/`EnvAgreeOn_mono`, the `Frame`/
--- `Stack`/`State` agreement extension (`FrameAgree`/`StackAgree`/`StateAgree` plus
--- `FrameAgree_mono`/`StackAgree_mono`) and `envAgreeOn_subset` (old Part 7/7a); and 8 of the old
--- Part 7b's 13 per-constructor `step_agree_*` placeholders -- every one whose real proof does
--- NOT reach into the still-deferred builtin-congruence set piece: `step_agree_lam`,
--- `step_agree_delay`, `step_agree_force_eval`, `step_agree_apply_eval`,
--- `step_agree_constr_eval`, `step_agree_case_eval`, `step_agree_builtin_eval`,
--- `step_agree_return_left_term`.
+-- TRANSLATED AND VERIFIED (this file, zero `sorry` in any actual declaration -- every remaining
+-- `sorry` occurrence in the file is inside a comment/string literal, not a proof term -- zero
+-- `error`, confirmed by a real `lake build` of both this file's own target and the full
+-- `Lemmas.Basic` aggregation target, 80 named declarations total):
+--   - Round 1 (old Parts 1-6, 7/7a): `envLookup`, `freeVarsUnderBinder`/`freeVars`/`freeVarsList`,
+--     `fix_ValueAgreeShape`, the `ValueAgree`/`EnvAgreeOn` mutual step-indexed relation,
+--     `fix_valueAgree_shape`, `beta_envAgreeOn_extend`, `step_var_agree`, `step_const_agree`,
+--     `ValueAgree_mono`/`EnvAgreeOn_mono`, `FrameAgree`/`StackAgree`/`StateAgree` plus their own
+--     monotonicity, `envAgreeOn_subset`, and 8 of the old Part 7b's 13 `step_agree_*`
+--     placeholders (every one not needing the builtin-congruence set piece).
+--   - Round 2 (old Part 8, the remaining Part 7b placeholders, Part 7c): the full `bcong_*`
+--     builtin-congruence family (9 declarations, all 91 real `BuiltinFun` constructors), the 5
+--     remaining `step_agree_return_*` placeholders plus their own `retdispatch_*` helper family
+--     (8 declarations) and one bridging private lemma, and `step_agree_invariant` -- THE master
+--     one-step CEK agreement theorem, composing all 13 `step_agree_*` cases against the real
+--     `step` function.
+--   - Round 3 (old Part 9, the `fuelpres_*` fuel-genuineness family): for every one of the 13
+--     `step_agree_*` cases, whether stepping preserves the SAME fuel level or genuinely needs to
+--     drop one, and exactly when. `beta_ce_*` fixtures (the historical broken-clause
+--     counterexample replay, restated against this repo's `VLam String Term Environment`/`[]`
+--     shapes) plus `fuelpres_lam_eval` through `fuelpres_return_case_scrutinee_vcon`, plus the
+--     `isAppDispatchable`/`isForceDispatchable`/`isCaseDispatchable` shape predicates. Confirmed,
+--     not assumed, that this fuel arithmetic is representation-independent: `ValueAgree`'s own
+--     recursive shape (round 1's translation, rechecked directly this round) gives every
+--     closure-shaped clause -- `VLam`, `VDelay`, `VConstr`, `VBuiltin` -- its captured content
+--     exactly one level below the wrapping level, unchanged by the `String`-to-`Nat`/positional-
+--     `Environment` migration, so the old file's five genuinely-costly obstructions (`VLam`-beta,
+--     `VBuiltin`-arity-just-exhausted under both `RightApplicationOfValue`/`ForceFrame`,
+--     `VDelay`-pop, `VConstr`-scrutinee dispatch) carry over identically. All five obstructions
+--     are documented in comments (no theorem stated for an impossible claim, matching the old
+--     file's own discipline), not left as a `sorry`'d false statement.
 --
--- DEFERRED to a later round, not attempted here, no placeholder `sorry` left standing for any of
--- it (nothing in THIS file references it):
---   - The remaining 5 of the old Part 7b's 13 `step_agree_*` placeholders --
---     `step_agree_return_right_value`, `step_agree_return_left_value` (both need Part 8's
---     builtin congruence for their VBuiltin-arity-exhausted sub-case), `step_agree_return_force`
---     (same, for its own VBuiltin sub-case), `step_agree_return_constr_arg`,
---     `step_agree_return_case_scrutinee` (both need the `retdispatch_*` helper family, old file
---     lines 1656-1805, which is itself representation-agnostic but not yet translated).
---   - Part 8, the ~395-line `bcong_evalBuiltin_agree` builtin-congruence set piece -- read in
---     full this round, confirmed REPRESENTATION-AGNOSTIC (it is entirely about `CekValue`/
---     `BuiltinFun`/`ExpectedBuiltinArgs` shape, which the de Bruijn migration did not touch at
---     all), so it is expected to translate near-mechanically once Part 7's `Frame`/`Stack`
---     agreement it depends on lands, not attempted yet purely for sequencing reasons.
---   - Part 9 (`fuelpres_*`, the fuel-genuineness investigation) and Part 10 (`stepAbs_agree`/
---     `stepN_agree_of_stateAgree`/`eval_agree`, the multi-step chaining induction).
---   - The closing `eac_*`/`eval_agree_as_stated_is_false` counterexample section, which refutes
---     the FULLY GENERAL fixed-fuel form of `eval_agree` -- confirmed read this round, its own
---     witness values (`eac_w1`/`eac_Vg1`/...) are stated directly against
---     `Environment.EmptyEnvironment`/`NonEmptyEnvironment`, so restating it needs the same
---     positional-environment translation as everything else here, not yet done. THIS IS A
---     DOCUMENTED NEGATIVE RESULT the old file is careful to preserve (see its own Part 6 note:
---     "never leave a live `sorry`'d claim whose negation is separately proven elsewhere in the
---     same file") -- a future round must carry the refutation across, not just the positive
---     theorems, or the migrated file would silently drop it.
+-- DEFERRED to a later round, not attempted, no placeholder `sorry` left standing for any of it
+-- (nothing in this file references it):
+--   - Part 10 (`stepAbs_agree`/`stepN_agree_of_stateAgree`/`stepN_add`/`stepN_error_absorbing`/
+--     `FrameAgree_refl`/`StackAgree_refl`/`eval_agree`, the multi-step chaining induction lifting
+--     `step_agree_invariant` across an arbitrary number of `stepN` iterations). Its own
+--     `stepAbs`/`stepN` names collide with Layer 0's already-pushed `stepAbs`/`stepN` in
+--     `PlutusCore/UPLC/CekMachine/Lemmas.lean` (fork commit `b7a4bb5`), a real blocker to resolve
+--     (reuse Layer 0's definitions, do not redefine) before this Part can be attempted.
+--   - The closing `eac_*`/`eval_agree_as_stated_is_false` counterexample section, refuting the
+--     FULLY GENERAL fixed-fuel form of `eval_agree` -- a DOCUMENTED NEGATIVE RESULT the old file
+--     is careful to preserve, still needs positional-`List CekValue` literal reconstruction, not
+--     yet done. A future round must carry the refutation across, not just the positive theorems,
+--     or the migrated file would silently drop it.
