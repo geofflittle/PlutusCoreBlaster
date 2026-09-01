@@ -1,4 +1,5 @@
 import PlutusCore.UPLC.CekMachine
+import PlutusCore.UPLC.CekMachine.Lemmas
 
 -- Migration of sundae-v4's `Formalization/Scratch/EnvLemma.lean` (general CEK environment/
 -- value step-indexed agreement metatheory, frozen source commit `50cd4f699` in that repo) onto
@@ -2597,16 +2598,283 @@ theorem fuelpres_return_case_scrutinee_vcon (sv : PlutusCore.Default.BuiltinSema
 -- the reason the same-level companion fails here while the uniform `(n+1) -> n` placeholder
 -- succeeds: the uniform convention's extra "+1" of slack is precisely what was masking this cost.)
 
+-- ── Part 10 (round 4): the chaining induction lifting `step_agree_invariant` from ONE step to
+-- an arbitrary number of steps, composing every earlier part (Parts 1-8's `step_agree_invariant`,
+-- Part 9's fuel-genuineness family) into `eval_agree`, this file's own capstone theorem. Reuses
+-- Layer 0's own `stepAbs`/`stepN` (`PlutusCore/UPLC/CekMachine/Lemmas.lean`, imported above)
+-- rather than redefining them, resolving the sibling-name collision round 1 flagged and round 3
+-- confirmed fixable. `stepN_add` is genuinely re-proven here (not reused from Layer 0): Layer 0
+-- has `runSteps_add`, the fuel-EXHAUSTING analogue, which does not directly compose for the
+-- fuel-FREE `stepN` this Part needs. Every declaration below is representation-agnostic (threads
+-- an opaque `sv`/`Nat` fuel level through `StateAgree`/`StackAgree`/`ValueAgree`, never itself
+-- destructing an `Environment`/`Term`), so this translates verbatim from the old file structurally
+-- once the import above makes `stepAbs`/`stepN` resolve unqualified. ──────────────────────────────
+
+theorem stepAbs_agree (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (n : Nat) (S1 S2 : State) (h : StateAgree (n + 1) S1 S2) :
+    StateAgree n (stepAbs sv S1) (stepAbs sv S2) := by
+  cases S1 with
+  | Halt v1 =>
+      cases S2 with
+      | Halt v2 =>
+          simp only [stepAbs]
+          exact ValueAgree_mono n v1 v2 h
+      | Eval _ _ _ => exact absurd h (by simp [StateAgree])
+      | Return _ _ => exact absurd h (by simp [StateAgree])
+      | Error => exact absurd h (by simp [StateAgree])
+  | Error =>
+      cases S2 with
+      | Error => simp [stepAbs, StateAgree]
+      | Halt _ => exact absurd h (by simp [StateAgree])
+      | Eval _ _ _ => exact absurd h (by simp [StateAgree])
+      | Return _ _ => exact absurd h (by simp [StateAgree])
+  | Eval s1 ρ1 M1 =>
+      cases S2 with
+      | Eval s2 ρ2 M2 =>
+          show StateAgree n (step sv (State.Eval s1 ρ1 M1)) (step sv (State.Eval s2 ρ2 M2))
+          exact step_agree_invariant sv n _ _ h
+      | Return _ _ => exact absurd h (by simp [StateAgree])
+      | Halt _ => exact absurd h (by simp [StateAgree])
+      | Error => exact absurd h (by simp [StateAgree])
+  | Return s1 v1 =>
+      cases S2 with
+      | Return s2 v2 =>
+          show StateAgree n (step sv (State.Return s1 v1)) (step sv (State.Return s2 v2))
+          exact step_agree_invariant sv n _ _ h
+      | Eval _ _ _ => exact absurd h (by simp [StateAgree])
+      | Halt _ => exact absurd h (by simp [StateAgree])
+      | Error => exact absurd h (by simp [StateAgree])
+
+theorem stepN_agree_of_stateAgree (sv : PlutusCore.Default.BuiltinSemanticsVariant) :
+    ∀ (k1 : Nat) (n : Nat) (S1 S2 : State),
+      StateAgree (n + k1) S1 S2 →
+      StateAgree n (stepN sv S1 k1) (stepN sv S2 k1) := by
+  intro k1
+  induction k1 with
+  | zero => intro n S1 S2 h; simpa [stepN] using h
+  | succ m ih =>
+      intro n S1 S2 h
+      have heq : n + (m + 1) = (n + m) + 1 := by omega
+      rw [heq] at h
+      have hstep : StateAgree (n + m) (stepAbs sv S1) (stepAbs sv S2) :=
+        stepAbs_agree sv (n + m) S1 S2 h
+      have hchain := ih n (stepAbs sv S1) (stepAbs sv S2) hstep
+      simpa [stepN] using hchain
+
+-- `stepN_add`: fuel-composition for `stepN` (the `stepN`-shaped analogue of Layer 0's own
+-- `runSteps_add`, which is stated for the fuel-EXHAUSTING `runSteps` and so is not directly
+-- reusable here).
+theorem stepN_add (sv : PlutusCore.Default.BuiltinSemanticsVariant) (s : State) (m k : Nat) :
+    stepN sv s (m + k) = stepN sv (stepN sv s m) k := by
+  induction m generalizing s with
+  | zero => simp [stepN]
+  | succ m' ih =>
+      have heq : m' + 1 + k = (m' + k) + 1 := by omega
+      rw [heq]
+      show stepN sv s ((m' + k) + 1) = stepN sv (stepN sv (stepAbs sv s) m') k
+      show stepN sv (stepAbs sv s) (m' + k) = stepN sv (stepN sv (stepAbs sv s) m') k
+      exact ih (stepAbs sv s)
+
+-- `stepN_error_absorbing`: `State.Error` is a genuine fixed point of `stepN` at every fuel level
+-- (immediate from `stepAbs`'s own `State.Error => State.Error` clause).
+theorem stepN_error_absorbing (sv : PlutusCore.Default.BuiltinSemanticsVariant) :
+    ∀ k : Nat, stepN sv State.Error k = State.Error := by
+  intro k
+  induction k with
+  | zero => simp [stepN]
+  | succ j ih =>
+      show stepN sv (stepAbs sv State.Error) j = State.Error
+      simpa [stepAbs] using ih
+
+-- `FrameAgree`/`StackAgree` are REFLEXIVE at every fuel level, by the SAME technique as
+-- `bcong_valueAgree_refl`/`bcong_envAgreeOn_refl` above (ordinary structural recursion on the
+-- Frame/Stack shape, reusing those two reflexivity facts pointwise -- `FrameAgree`/`StackAgree`
+-- never recurse into `ValueAgree`'s own step-indexed structure, per Part 7a's own header comment).
+theorem FrameAgree_refl (n : Nat) (f : Frame) : FrameAgree n f f := by
+  cases f with
+  | ForceFrame => simp [FrameAgree]
+  | LeftApplicationToTerm M ρ => exact ⟨rfl, bcong_envAgreeOn_refl n (freeVars M) ρ⟩
+  | LeftApplicationToValue v => exact bcong_valueAgree_refl n v
+  | RightApplicationOfValue v => exact bcong_valueAgree_refl n v
+  | ConstructorArgument i vs Ms ρ =>
+      exact ⟨rfl, rfl, rfl, fun k _ _ => bcong_valueAgree_refl n (vs[k]),
+             bcong_envAgreeOn_refl n (freeVarsList Ms) ρ⟩
+  | CaseScrutinee Ms ρ => exact ⟨rfl, bcong_envAgreeOn_refl n (freeVarsList Ms) ρ⟩
+
+theorem StackAgree_refl (n : Nat) (s : Stack) : StackAgree n s s := by
+  induction s with
+  | nil => simp [StackAgree]
+  | cons f s' ih => exact ⟨FrameAgree_refl n f, ih⟩
+
+-- `eval_agree`: THE CAPSTONE -- the real, provable any-length CEK-metatheory fact this whole file
+-- has been building toward. The fuel supplied to `hagree` GROWS with the step count `k1` (one
+-- extra unit per raw step, matching `stepN_agree_of_stateAgree`'s safe over-approximation of Part
+-- 9's 5-obstruction-events-per-step-at-most cost) instead of being FIXED ahead of time, and the
+-- conclusion reports the reached stack up to `StackAgree` rather than asserting it is literally
+-- the same `s` (proving THAT would need a separate "stack-tail invariance" argument, not needed
+-- for the point this lemma makes), and side 2 reaches its own `Return` at EXACTLY the same step
+-- count `k1` as side 1 (a direct consequence of `step_agree_invariant` being a genuine LOCKSTEP
+-- bisimulation -- the SAME real `step` branch fires on both sides at every step once their states
+-- agree -- rather than an existentially-quantified possibly-different `k2`). See the closing
+-- `eac_*` counterexample section (deferred, not yet translated) for why the growing-fuel
+-- requirement is a genuine mathematical necessity, not merely this lemma's own proof-technique
+-- artifact: the old file's `eac_*` family machine-checks that the FIXED-fuel form this theorem's
+-- signature deliberately avoids is actually FALSE.
+theorem eval_agree (sv : PlutusCore.Default.BuiltinSemanticsVariant)
+    (s : Stack) (ρ1 ρ2 : Environment) (M : Term) (n k1 : Nat)
+    (hagree : EnvAgreeOn (n + k1) (freeVars M) ρ1 ρ2)
+    (v1 : CekValue) (hv1 : stepN sv (State.Eval s ρ1 M) k1 = State.Return s v1) :
+    ∃ (s2 : Stack) (v2 : CekValue),
+      stepN sv (State.Eval s ρ2 M) k1 = State.Return s2 v2 ∧
+      StackAgree n s s2 ∧ ValueAgree n v1 v2 := by
+  have hS : StateAgree (n + k1) (State.Eval s ρ1 M) (State.Eval s ρ2 M) :=
+    ⟨rfl, StackAgree_refl (n + k1) s, hagree⟩
+  have hchain := stepN_agree_of_stateAgree sv k1 n (State.Eval s ρ1 M) (State.Eval s ρ2 M) hS
+  rw [hv1] at hchain
+  cases hR : stepN sv (State.Eval s ρ2 M) k1 with
+  | Return s2 v2 =>
+      rw [hR] at hchain
+      obtain ⟨hs2, hv⟩ := hchain
+      exact ⟨s2, v2, rfl, hs2, hv⟩
+  | Eval _ _ _ => rw [hR] at hchain; exact absurd hchain (by simp [StateAgree])
+  | Halt _ => rw [hR] at hchain; exact absurd hchain (by simp [StateAgree])
+  | Error => rw [hR] at hchain; exact absurd hchain (by simp [StateAgree])
+
+-- ── round 5 start (old lines 3078-3177, `eac_*`/`eval_agree_as_stated_is_false`): a MACHINE-
+-- CHECKED refutation of `eval_agree` AT A FIXED FUEL LEVEL (the shape `eval_agree` above
+-- deliberately avoids by growing `n + k1`) -- a genuine negative result the old file is careful
+-- to preserve, not merely this file's own proof-technique artifact. Rebuilt against this repo's
+-- positional `Environment := List CekValue` / de Bruijn `Term.Var : Nat` literals in place of the
+-- old `Environment.EmptyEnvironment`/`NonEmptyEnvironment` string-keyed ones -- REAL semantic
+-- judgment, not mechanical renaming: `eac_ρouter{1,2}` bind `g` at index `0` (`[eac_Vg{1,2}]`);
+-- `eac_Vg{1,2}`'s own captured `eac_ρinner{1,2}` bind `w` at index `0` relative to `eac_Vg`'s OWN
+-- closure (`[eac_w{1,2}]`, matching `ValueAgree`'s `VLam` clause, which reasons about the
+-- CAPTURED environment, never the runtime-extended one); `eac_body`'s reference to `w` is
+-- `Term.Var 1` as a raw index (position 1 in the two-element runtime environment `[y-argument,
+-- w]` once `y` is beta-consed on), which `freeVarsUnderBinder` shifts down to index `0` relative
+-- to the captured `eac_ρinner{1,2}` alone -- exactly what `eac_hagree`'s proof needs to reach.
+-- Every step count is UNCHANGED from the old file (11 for side 1's clean `Return`, 10 for side
+-- 2's `Error`): confirmed by direct re-derivation of the full step trace against the real `step`
+-- function above, not assumed -- positional lookup replaces name lookup but does not add or
+-- remove any `step` call, so the representation change is invisible to raw step counting.
+section EvalAgreeCounterexample
+
+def eac_w1 : CekValue := CekValue.VLam "u" (Term.Var 0) []
+def eac_w2 : CekValue := CekValue.VCon (Const.Integer 5)
+
+def eac_ρinner1 : Environment := [eac_w1]
+def eac_ρinner2 : Environment := [eac_w2]
+
+def eac_body : Term := Term.Apply (Term.Var 1) (Term.Term.Const (Const.Integer 1))
+
+def eac_Vg1 : CekValue := CekValue.VLam "y" eac_body eac_ρinner1
+def eac_Vg2 : CekValue := CekValue.VLam "y" eac_body eac_ρinner2
+
+def eac_ρouter1 : Environment := [eac_Vg1]
+def eac_ρouter2 : Environment := [eac_Vg2]
+
+def eac_M : Term := Term.Apply (Term.Var 0) (Term.Term.Const (Const.Integer 0))
+
+def eac_sv : PlutusCore.Default.BuiltinSemanticsVariant := default
+
+-- `hagree` holds: unfolds to `ValueAgree 0 eac_w1 eac_w2`, unconditionally `True` (Part 3's own
+-- fuel-0 base case), even though `eac_w1`/`eac_w2` are completely different shapes.
+theorem eac_hagree : EnvAgreeOn 1 (freeVars eac_M) eac_ρouter1 eac_ρouter2 := by
+  unfold EnvAgreeOn
+  intro x hx
+  have hxg : x = 0 := by simpa [eac_M, freeVars] using hx
+  subst hxg
+  have hl1 : envLookup eac_ρouter1 0 = some eac_Vg1 := by simp [eac_ρouter1]
+  have hl2 : envLookup eac_ρouter2 0 = some eac_Vg2 := by simp [eac_ρouter2]
+  rw [hl1, hl2]
+  show ValueAgree 1 eac_Vg1 eac_Vg2
+  unfold ValueAgree
+  refine ⟨rfl, rfl, ?_⟩
+  unfold EnvAgreeOn
+  intro z hz
+  have hzw : z = 0 := by simpa [eac_body, freeVarsUnderBinder, freeVars] using hz
+  subst hzw
+  have hl1' : envLookup eac_ρinner1 0 = some eac_w1 := by simp [eac_ρinner1]
+  have hl2' : envLookup eac_ρinner2 0 = some eac_w2 := by simp [eac_ρinner2]
+  rw [hl1', hl2']
+  show ValueAgree 0 eac_w1 eac_w2
+  simp [ValueAgree]
+
+-- Side 1: genuinely Returns after exactly 11 steps.
+theorem eac_side1_returns :
+    stepN eac_sv (State.Eval ([] : Stack) eac_ρouter1 eac_M) 11 =
+      State.Return [] (CekValue.VCon (Const.Integer 1)) := by
+  rfl
+
+-- Side 2: hits `Error` at step 10 (confirmed by direct computation), never a `Return [] _` at any
+-- step before that (`eac_isReturnNil`/`eac_boundedCheck` package the 10-way finite check).
+def eac_isReturnNil : State → Bool
+  | State.Return [] _ => true
+  | _ => false
+
+def eac_boundedCheck : Nat → Bool
+  | 0 => true
+  | (k + 1) =>
+      (!eac_isReturnNil (stepN eac_sv (State.Eval ([] : Stack) eac_ρouter2 eac_M) k)) &&
+        eac_boundedCheck k
+
+theorem eac_boundedCheck_sound : ∀ (n : Nat), eac_boundedCheck n = true →
+    ∀ k, k < n → eac_isReturnNil (stepN eac_sv (State.Eval ([] : Stack) eac_ρouter2 eac_M) k) = false := by
+  intro n
+  induction n with
+  | zero => intro _ k hk; omega
+  | succ m ih =>
+      intro h k hk
+      simp only [eac_boundedCheck, Bool.and_eq_true, Bool.not_eq_true'] at h
+      obtain ⟨hnot, hrest⟩ := h
+      by_cases hkm : k = m
+      · subst hkm; exact hnot
+      · exact ih hrest k (by omega)
+
+theorem eac_side2_errors_at_10 :
+    stepN eac_sv (State.Eval ([] : Stack) eac_ρouter2 eac_M) 10 = State.Error := by
+  rfl
+
+-- THE REFUTATION: every hypothesis `eval_agree` would need at a FIXED fuel level (`sv := eac_sv`,
+-- `s := []`, `ρ1 := eac_ρouter1`, `ρ2 := eac_ρouter2`, `M := eac_M`, `n := 0`,
+-- `v1 := VCon (Integer 1)`, `k1 := 11`) holds, yet the fixed-fuel conclusion (`∃ k2 v2, ...`) is
+-- FALSE -- this is exactly why `eval_agree` above states its hypothesis at the GROWING fuel level
+-- `n + k1`, not a fixed `n`.
+theorem eval_agree_as_stated_is_false :
+    EnvAgreeOn (0 + 1) (freeVars eac_M) eac_ρouter1 eac_ρouter2 ∧
+    stepN eac_sv (State.Eval ([] : Stack) eac_ρouter1 eac_M) 11 =
+      State.Return [] (CekValue.VCon (Const.Integer 1)) ∧
+    ¬ ∃ (k2 : Nat) (v2 : CekValue),
+        stepN eac_sv (State.Eval ([] : Stack) eac_ρouter2 eac_M) k2 = State.Return [] v2 ∧
+        ValueAgree 0 (CekValue.VCon (Const.Integer 1)) v2 := by
+  refine ⟨eac_hagree, eac_side1_returns, ?_⟩
+  rintro ⟨k2, v2, hret, -⟩
+  by_cases hk : k2 < 10
+  · have hcheck := eac_boundedCheck_sound 10 (by decide) k2 hk
+    rw [hret] at hcheck
+    simp [eac_isReturnNil] at hcheck
+  · obtain ⟨j, hj⟩ : ∃ j, k2 = 10 + j := ⟨k2 - 10, by omega⟩
+    subst hj
+    have hadd := stepN_add eac_sv (State.Eval ([] : Stack) eac_ρouter2 eac_M) 10 j
+    rw [eac_side2_errors_at_10] at hadd
+    rw [hadd, stepN_error_absorbing eac_sv j] at hret
+    exact State.noConfusion hret
+
+end EvalAgreeCounterexample
+
 end PlutusCore.UPLC.CekMachine.EnvLemmas
 
--- ── CUMULATIVE SCOPE (rounds 1-3), honestly stated -- status only, no difficulty/effort prose
+-- ── CUMULATIVE SCOPE (rounds 1-4), honestly stated -- status only, no difficulty/effort prose
 -- (per this project's own "file headers assert only checkable facts" discipline); a stale prior
--- version of this comment (round-1-only) has been replaced here rather than left to drift. ──────
+-- version of this comment (round-1-only, then round-3) has been replaced here rather than left
+-- to drift. THE ENTIRE OLD FILE IS NOW TRANSLATED (every Part, including the closing negative
+-- result) -- round 4 closed both Part 10 AND the `eac_*` counterexample section originally
+-- estimated as a separate round 5, so no further round is needed for THIS file. ──────────────────
 --
 -- TRANSLATED AND VERIFIED (this file, zero `sorry` in any actual declaration -- every remaining
 -- `sorry` occurrence in the file is inside a comment/string literal, not a proof term -- zero
 -- `error`, confirmed by a real `lake build` of both this file's own target and the full
--- `Lemmas.Basic` aggregation target, 80 named declarations total):
+-- `Lemmas.Basic` aggregation target, 105 named declarations total):
 --   - Round 1 (old Parts 1-6, 7/7a): `envLookup`, `freeVarsUnderBinder`/`freeVars`/`freeVarsList`,
 --     `fix_ValueAgreeShape`, the `ValueAgree`/`EnvAgreeOn` mutual step-indexed relation,
 --     `fix_valueAgree_shape`, `beta_envAgreeOn_extend`, `step_var_agree`, `step_const_agree`,
@@ -2634,17 +2902,29 @@ end PlutusCore.UPLC.CekMachine.EnvLemmas
 --     `VDelay`-pop, `VConstr`-scrutinee dispatch) carry over identically. All five obstructions
 --     are documented in comments (no theorem stated for an impossible claim, matching the old
 --     file's own discipline), not left as a `sorry`'d false statement.
+--   - Round 4 (old Part 10): the chaining induction lifting `step_agree_invariant` from ONE step
+--     to an arbitrary number of steps -- `stepAbs_agree`, `stepN_agree_of_stateAgree`, `stepN_add`,
+--     `stepN_error_absorbing`, `FrameAgree_refl`, `StackAgree_refl`, and `eval_agree` itself, THE
+--     capstone theorem this whole file exists to prove. Resolved the sibling-name collision rounds
+--     1/3 flagged by importing Layer 0's own `PlutusCore/UPLC/CekMachine/Lemmas.lean` and reusing
+--     its `stepAbs`/`stepN` directly rather than redefining them (`stepN_add` alone is re-proven
+--     here, since Layer 0's own `runSteps_add` is stated for the fuel-EXHAUSTING `runSteps`, not
+--     the fuel-free `stepN` this Part needs). Translated verbatim from the old file's structure,
+--     confirmed by a real `lake build`, no representation-specific content in this Part at all.
+--   - Round 4, second half (old lines 3078-3177, the closing `eac_*`/
+--     `eval_agree_as_stated_is_false` counterexample section): a MACHINE-CHECKED refutation of
+--     `eval_agree` AT A FIXED FUEL LEVEL, the shape `eval_agree` deliberately avoids -- a genuine
+--     negative result the old file is careful to preserve, carried across intact rather than
+--     silently dropped. Rebuilt against this repo's positional literals (real semantic judgment,
+--     not renaming): `eac_ρouter{1,2}`/`eac_ρinner{1,2}` bind their single value at index `0`;
+--     `eac_body`'s reference to the outer-captured `w` is `Term.Var 1` as a raw runtime index
+--     (position 1 once the inner lambda's own argument is consed on), which `freeVarsUnderBinder`
+--     correctly shifts to index `0` relative to the CAPTURED (not runtime-extended) environment
+--     `ValueAgree`'s `VLam` clause actually inspects -- confirmed by a full step-by-step
+--     re-derivation against the real `step` function, not assumed. Every step count is UNCHANGED
+--     from the old file (11 steps to a clean `Return` on side 1, 10 steps to `Error` on side 2):
+--     the representation change is invisible to raw step counting, confirmed by direct `rfl`
+--     computation through the real `step`/`stepAbs`/`stepN` chain, not by analogy.
 --
--- DEFERRED to a later round, not attempted, no placeholder `sorry` left standing for any of it
--- (nothing in this file references it):
---   - Part 10 (`stepAbs_agree`/`stepN_agree_of_stateAgree`/`stepN_add`/`stepN_error_absorbing`/
---     `FrameAgree_refl`/`StackAgree_refl`/`eval_agree`, the multi-step chaining induction lifting
---     `step_agree_invariant` across an arbitrary number of `stepN` iterations). Its own
---     `stepAbs`/`stepN` names collide with Layer 0's already-pushed `stepAbs`/`stepN` in
---     `PlutusCore/UPLC/CekMachine/Lemmas.lean` (fork commit `b7a4bb5`), a real blocker to resolve
---     (reuse Layer 0's definitions, do not redefine) before this Part can be attempted.
---   - The closing `eac_*`/`eval_agree_as_stated_is_false` counterexample section, refuting the
---     FULLY GENERAL fixed-fuel form of `eval_agree` -- a DOCUMENTED NEGATIVE RESULT the old file
---     is careful to preserve, still needs positional-`List CekValue` literal reconstruction, not
---     yet done. A future round must carry the refutation across, not just the positive theorems,
---     or the migrated file would silently drop it.
+-- DEFERRED: nothing. Every Part of the old 3177-line file (10 numbered Parts plus the closing
+-- negative-result section) is translated, zero `sorry`, real `lake build` green.
