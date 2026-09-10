@@ -19,7 +19,7 @@ def stepAbs (sv : BuiltinSemanticsVariant) (s : State) : State :=
   | State.Error => State.Error
   | _ => step sv s
 
-/-- Iteration of `stepAbs`. At zero it returns the state reached, never `Error`. -/
+/-- Iteration of `stepAbs`. -/
 def stepN (sv : BuiltinSemanticsVariant) (s : State) : Nat → State
   | 0 => s
   | (k + 1) => stepN sv (stepAbs sv s) k
