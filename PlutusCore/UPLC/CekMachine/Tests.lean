@@ -5,7 +5,7 @@ namespace PlutusCore.UPLC.CekMachine
 open PlutusCore.Default
 open PlutusCore.UPLC.CekValue (CekValue)
 
-/-! ## Concrete checks for the fuel-free iteration
+/-! ## Concrete checks for the exhaustion-free iteration
 
 `rfl` rather than `native_decide`, since `State` has no `DecidableEq` instance. -/
 

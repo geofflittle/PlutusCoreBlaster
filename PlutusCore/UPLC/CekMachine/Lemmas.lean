@@ -6,10 +6,11 @@ open PlutusCore.Default
 open PlutusCore.UPLC.CekValue (CekValue)
 open PlutusCore.UPLC.Term (Program Term)
 
-/-! ## Fuel-free step iteration
+/-! ## Step iteration with no exhaustion branch
 
-`stepAbs`/`stepN` iterate `step` without fuel, returning the state reached instead of
-`runSteps`'s fuel-exhaustion `Error`, so a run splits into two analyzable pieces. -/
+`stepN` takes a step count and recurses on it exactly as `runSteps` does. What it lacks is
+the exhaustion branch: at zero it hands back the state reached where `runSteps` reports
+`Error`, so a run splits into two analyzable pieces. -/
 
 /-- `step`, but a no-op on `Halt`/`Error`, which raw `step` sends to `Error`. -/
 def stepAbs (sv : BuiltinSemanticsVariant) (s : State) : State :=
@@ -18,7 +19,7 @@ def stepAbs (sv : BuiltinSemanticsVariant) (s : State) : State :=
   | State.Error => State.Error
   | _ => step sv s
 
-/-- Fuel-free iteration of `stepAbs`. -/
+/-- Iteration of `stepAbs`. At zero it returns the state reached, never `Error`. -/
 def stepN (sv : BuiltinSemanticsVariant) (s : State) : Nat → State
   | 0 => s
   | (k + 1) => stepN sv (stepAbs sv s) k
@@ -92,7 +93,7 @@ theorem runSteps_add (sv : BuiltinSemanticsVariant) (s : State) (m n : Nat) :
       rw [heq, runSteps_succ, ih (stepAbs sv s)]
       rfl
 
-/-- The fuelled machine and the fuel-free iteration agree exactly on halting runs. -/
+/-- `runSteps` and `stepN` agree exactly on halting runs. -/
 theorem runSteps_halt_iff_stepN (sv : BuiltinSemanticsVariant) (s : State) (V : CekValue)
     (m : Nat) :
     runSteps sv s m = State.Halt V ↔ stepN sv s m = State.Halt V := by
