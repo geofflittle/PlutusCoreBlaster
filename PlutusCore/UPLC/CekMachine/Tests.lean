@@ -9,7 +9,7 @@ open PlutusCore.UPLC.CekValue (CekValue Environment)
 /-! ## Concrete checks for the exhaustion-free iteration
 
 Closed equations close by `rfl`, and closed disequalities by `cases` or `nofun`, neither
-needing an instance. The last section is what needs `DecidableEq State`. -/
+needing an instance. -/
 
 def testSemanticsVariant : BuiltinSemanticsVariant :=
   PlutusCore.Default.Internal.BuiltinSemanticsVariant.defaultFunSemanticsVariantB
@@ -74,16 +74,13 @@ example : cekExecuteProgramWithSemanticVariant testSemanticsVariant testProgram 
 example : cekExecuteProgramWithSemanticVariant testSemanticsVariant testProgram [] (2 + 7)
     = State.Halt testResult := rfl
 
-/-! ### States that differ, closed by `cases` and needing no instance -/
+/-! ### States that differ -/
 
 example : runSteps testSemanticsVariant testStart 1 ≠ State.Halt testResult := by
   intro h
   cases h
 
-/-! ### At a realistic size
-
-`bigState` and `bigStateAlt` are both `State.Eval` over a ten-frame stack and a
-thirty-deep term, agreeing on twenty-nine of the thirty environment entries. -/
+/-! ### At a realistic size -/
 
 /-- `Force (Delay (Force (Delay ... testTerm)))`, `n` layers deep. -/
 def deepTerm : Nat → PlutusCore.UPLC.Term.Term
@@ -112,17 +109,12 @@ def bigStateAlt : State :=
 example : bigState = bigState := rfl
 example : bigState ≠ bigStateAlt := by nofun
 
-/-! ### What the instance is for
+/-! ### Checks that need the instances -/
 
-Every check above is one closed equation or disequality, which the kernel settles on its
-own. The three below are not, and they need `DecidableEq State`. -/
-
--- A bounded quantifier over machine states. `decide` routes it through
--- `Nat.decidableBallLT`, which needs a `Decidable` body at each `n`.
+-- The body at each `n` is a state disequality, decided by `DecidableEq State`.
 example : ∀ n, n < 4 → stepN testSemanticsVariant testStart n ≠ State.Error := by decide
 
--- Generic code written against `[BEq α]`. The instance supplies the comparison
--- through `instBEqOfDecidableEq`.
+-- `eraseDups` and `count` compare states through `instBEqState`.
 example : [bigState, bigStateAlt, bigState].eraseDups.length = 2 := by decide
 
 example : ([bigState, bigStateAlt].count bigState) = 1 := by decide

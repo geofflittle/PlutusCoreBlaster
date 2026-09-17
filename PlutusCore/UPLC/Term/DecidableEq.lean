@@ -5,14 +5,11 @@ namespace PlutusCore.UPLC.Term
 
 /-! ## Decidable equality for `Const` and `Term`
 
-`deriving DecidableEq` reaches neither type: `Const` nests `List Const` and `Const × Const`,
-and `Term` nests `List Term`. `deriving BEq` does reach both types, but the derived
-comparison does not reduce in the kernel, so `decide` cannot use it, and the hand-written
-comparison reduces. The comparisons below follow the shape used for `Data` in
-`PlutusCore/Data/Basic.lean`. No `BEq` is declared here, on purpose: a second one takes
-precedence by declaration order and would change `==` for every downstream caller. -/
+`deriving DecidableEq` fails on both types because each nests a `List` of itself, and a
+derived `BEq` does not reduce under `decide`, so the comparisons are hand-written. No `BEq`
+is declared here, since a second one would change `==` for every caller. -/
 
--- `eqTerm` decides `BuiltinFun` below.
+-- Used by `eqTerm`.
 deriving instance DecidableEq for BuiltinFun
 
 /-! ### `Const` -/
@@ -223,7 +220,7 @@ def Term.decEq (a b : Term) : Decidable (Eq a b) :=
 
 instance : DecidableEq Term := Term.decEq
 
-/-! ### `Program`, which needs `Version` derived first since it carries no instance -/
+/-! ### `Version` and `Program` -/
 
 deriving instance DecidableEq for Version
 deriving instance DecidableEq for Program
@@ -231,7 +228,7 @@ deriving instance DecidableEq for Program
 example : DecidableEq Version := inferInstance
 example : DecidableEq Program := inferInstance
 
-/-! ### The two equalities on `Term`, side by side -/
+/-! ### The two equalities on `Term` -/
 
 example : (Term.Lam "x" Term.Error == Term.Lam "y" Term.Error) = true := rfl
 
@@ -239,8 +236,7 @@ example : Term.Lam "x" Term.Error ≠ Term.Lam "y" Term.Error := by decide
 
 example : Term.Lam "x" Term.Error = Term.Lam "x" Term.Error := by decide
 
--- These pin `==` on both types to the hand-written instances. They catch a second
--- `BEq Const` or `BEq Term` declared upstream of this module, and nothing else.
+-- These catch a second `BEq Const` or `BEq Term` taking precedence over the hand-written ones.
 example : (inferInstance : BEq Const) = instBEqConst := rfl
 
 example : (inferInstance : BEq Term) = instBEqTerm := rfl
@@ -253,8 +249,8 @@ theorem instBEqTerm_not_lawful : ¬ (∀ a b : Term, (a == b) = true → a = b) 
 
 /-! ### A BLS12-381 constant, decided
 
-`==` sends these through the `opaque` `bls12_381_G1_equal` and gets stuck. The instance
-above compares the underlying `Point`, which reduces. -/
+`==` sends these through the `opaque` `bls12_381_G1_equal`, which does not reduce.
+`Const.decEq` compares the underlying `Point`, which does. -/
 
 example : Const.Bls12_381_G1_element Cryptograph.BLS12_381.g1
     = Const.Bls12_381_G1_element Cryptograph.BLS12_381.g1 := by decide

@@ -3,15 +3,13 @@ import PlutusCore.UPLC.Term.DecidableEq
 
 /-! ## Decidable equality for the CEK machine types
 
-The work is all in `CekValue`, which nests `List CekValue` and so is out of the deriving
-handler's reach. `deriving BEq` does reach `CekValue`, but the derived comparison does not
-reduce in the kernel, so `decide` cannot use it, and the hand-written comparison reduces.
-`Environment`, `Stack`, `Frame` and `State` follow from it, each in one line. -/
+`CekValue` nests `List CekValue`, so its comparison is hand-written, and a derived `BEq` would
+compile but not reduce under `decide`. Binder names are display-only metadata, so `==` ignores
+them and `=` does not. -/
 
 namespace PlutusCore.UPLC.Builtins
 
--- `eqCekValue` below decides these. The handler reaches `ExpectedBuiltinArgs` because its
--- recursion is direct, not nested inside another type constructor as on `CekValue`.
+-- Used by `eqCekValue`.
 deriving instance DecidableEq for ExpectedBuiltinArg
 deriving instance DecidableEq for ExpectedBuiltinArgs
 
@@ -108,6 +106,29 @@ def CekValue.decEq (a b : CekValue) : Decidable (Eq a b) :=
 
 instance : DecidableEq CekValue := CekValue.decEq
 
+/-! ### `==` on values
+
+The `BEq` that core derives from `DecidableEq` would compare binder names, so this instance is
+hand-written and takes precedence. -/
+
+mutual
+  private def beqCekValue : CekValue → CekValue → Bool
+    | .VCon a, .VCon b => a == b
+    | .VDelay t1 e1, .VDelay t2 e2 => t1 == t2 && beqCekValueList e1 e2
+    | .VLam _ t1 e1, .VLam _ t2 e2 => t1 == t2 && beqCekValueList e1 e2
+    | .VConstr i a, .VConstr j b => i == j && beqCekValueList a b
+    | .VBuiltin f1 a1 s1, .VBuiltin f2 a2 s2 =>
+        f1 == f2 && beqCekValueList a1 a2 && s1 == s2
+    | _, _ => false
+
+  private def beqCekValueList : List CekValue → List CekValue → Bool
+    | [], [] => true
+    | a :: as, b :: bs => beqCekValue a b && beqCekValueList as bs
+    | _, _ => false
+end
+
+instance instBEqCekValue : BEq CekValue := ⟨beqCekValue⟩
+
 example : DecidableEq Environment := inferInstance
 
 end PlutusCore.UPLC.CekValue
@@ -120,28 +141,45 @@ deriving instance DecidableEq for Frame
 
 example : DecidableEq Stack := inferInstance
 
-/-! ### `State`, and every type a state is built from, which `BuiltinSemanticsVariant` is not -/
-
 deriving instance DecidableEq for State
 
 example : DecidableEq State := inferInstance
-
-/-! ### `EvaluationResult`, what the budget aware path returns instead of a state -/
 
 deriving instance DecidableEq for EvaluationResult
 
 example : DecidableEq EvaluationResult := inferInstance
 
-/-! ### `BEq` and `LawfulBEq`
+/-! ### `BEq` -/
 
-Both arrive through `instBEqOfDecidableEq` and `instLawfulBEq`. These checks fail if a
-hand-rolled `BEq` is ever added for one of these types. -/
+deriving instance BEq for Frame
+deriving instance BEq for State
+deriving instance BEq for EvaluationResult
 
-example : LawfulBEq CekValue := inferInstance
-example : LawfulBEq Environment := inferInstance
-example : LawfulBEq Frame := inferInstance
-example : LawfulBEq Stack := inferInstance
-example : LawfulBEq State := inferInstance
-example : LawfulBEq EvaluationResult := inferInstance
+/-! ### The two equalities on values, frames and states -/
+
+section
+open PlutusCore.UPLC.Term
+
+private def t1 : Term := .Lam "x" .Error
+private def t2 : Term := .Lam "y" .Error
+
+#guard t1 == t2
+#guard [t1] == [t2]
+#guard CekValue.VDelay t1 [] == CekValue.VDelay t2 []
+#guard State.Eval [] [] t1 == State.Eval [] [] t2
+#guard Frame.CaseScrutinee [t1] [] == Frame.CaseScrutinee [t2] []
+
+example : CekValue.VDelay t1 [] ≠ CekValue.VDelay t2 [] := by decide
+example : State.Eval [] [] t1 ≠ State.Eval [] [] t2 := by decide
+example : Frame.CaseScrutinee [t1] [] ≠ Frame.CaseScrutinee [t2] [] := by decide
+
+-- `==` on a BLS constant runs but does not reduce, so these are guards rather than `decide` examples.
+#guard CekValue.VCon (Const.Bls12_381_G1_element Cryptograph.BLS12_381.g1)
+    == CekValue.VCon (Const.Bls12_381_G1_element Cryptograph.BLS12_381.g1)
+
+#guard CekValue.VCon (Const.Bls12_381_G1_element Cryptograph.BLS12_381.g1)
+    != CekValue.VCon (Const.Bls12_381_G1_element .infinity)
+
+end
 
 end PlutusCore.UPLC.CekMachine
