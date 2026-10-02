@@ -13,9 +13,9 @@ example : Data.Constr 0 [Data.I 1] < Data.Constr 1 [Data.I 2] := by decide
 example : ¬ (Data.I 2 < Data.I 1) := by decide
 
 example (i i' : PlutusCore.Integer.Integer) (a a' : List Data) :
-    eqDataConstr i a i' a' = eqData (.Constr i a) (.Constr i' a') := by simp [eqData, eqDataConstr]
+    ((i == i') && eqDataList a a') = eqData (.Constr i a) (.Constr i' a') := by simp [eqData]
 
 example (i i' : PlutusCore.Integer.Integer) (a a' : List Data) :
-    ltDataConstr i a i' a' = ltData (.Constr i a) (.Constr i' a') := by simp [ltData, ltDataConstr]
+    (i < i' && ltDataList a a') = ltData (.Constr i a) (.Constr i' a') := by simp [ltData]
 
 end PlutusCore.Data
