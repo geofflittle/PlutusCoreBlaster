@@ -97,9 +97,6 @@ mutual
   termination_by structural x => x
 end
 
-def eqDataConstr : Integer → List Data → Integer → List Data → Bool
-  | i , args , i' , args' => (i == i') && eqDataList args args'
-
 /-- BEq instance for Data -/
 instance BEqData : BEq Data where
   beq := eqData
@@ -139,9 +136,6 @@ mutual
         ltData x x' || (x == x' && (ltData y y' || (y == y' && ltDataMap xs ys)))
   termination_by structural x => x
 end
-
-def ltDataConstr : Integer → List Data → Integer → List Data → Bool
-  | i , args , i' , args' => i < i' && ltDataList args args'
 
 def Data.compareData (d1 : Data) (d2: Data) : Ordering :=
   if ltData d1 d2 then .lt
@@ -570,11 +564,9 @@ export PlutusCore.DataInternal
    eqData
    eqDataMap
    eqDataList
-   eqDataConstr
    ltData
    ltDataMap
    ltDataList
-   ltDataConstr
    -- builtin functions
    bData
    constrData
