@@ -138,19 +138,31 @@ def cekValueSize (v : CekValue) : Nat :=
     | CekValue.VCon c => constSize c
     | _ => 1
 
+-- `args[i]?` rather than `args.get ⟨i, h⟩`: Blaster cannot always rebuild the bound proof `h`,
+-- and replaces it with `sorry` (or fails, on an argument list with a symbolic tail).
 def argSize (args : List CekValue) (i : Nat) : Nat :=
   match args[i]? with
+<<<<<<< HEAD
   | some arg => cekValueSize arg
   | none => 1
+=======
+  | some v => cekValueSize v
+  | none => 1 -- 1?
+>>>>>>> 4d8f28a (Implement exunits bases cek machine)
 
 /-- Length of the list constant at position i in the CEK args. -/
 def argListLen (args : List CekValue) (i : Nat) : Nat :=
   match args[i]? with
+<<<<<<< HEAD
   | some arg =>
     match arg with
     | .VCon (.ConstList cs) => cs.length
     | _ => 0
   | none => 0
+=======
+  | some (.VCon (.ConstList cs)) => cs.length
+  | _ => 0
+>>>>>>> 4d8f28a (Implement exunits bases cek machine)
 
 def maxArgSize (args : List CekValue) : Nat :=
   match args.map cekValueSize with
