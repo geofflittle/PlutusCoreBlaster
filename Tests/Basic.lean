@@ -11,9 +11,11 @@ import PlutusCore.Bitwise.Tests
 import PlutusCore.Cbor.Tests
 import PlutusCore.UPLC.CekMachine.Tests
 import PlutusCore.UPLC.FlatEncoding.Tests
+import PlutusCore.UPLC.PreProcess.Tests
 import PlutusCore.UPLC.ScriptEncoding.Tests
 import PlutusCore.UPLC.TextEncoding.Tests
 import Tests.DataComparison
+import Tests.DecidableEq
 
 -- The conformance test suite (Tests.Conformance) is intentionally NOT imported
 -- here. It is built and run only by the manual `ci-conformance` workflow,
