@@ -2,6 +2,7 @@ import Lean
 import Std.Internal.UV.System
 import PlutusCore.UPLC.PreProcess
 import PlutusCore.UPLC.ScriptEncoding.Basic
+import Benchmark.PrepUplc.NativeOutcome
 
 /-!
 # `#prep_uplc` benchmark harness
@@ -206,18 +207,18 @@ def timeNative (run : IO α) : IO (Float × Nat × α) := do
 
 /-- Iterates `step` the way `runSteps` does, to count the steps, which `cekExecuteProgram` does not
     report. -/
-def countSteps (sv : BuiltinSemanticsVariant) (σ : PlutusCore.UPLC.CekMachine.State) (n fuel : Nat) : Nat × String :=
+def countSteps (sv : BuiltinSemanticsVariant) (σ : PlutusCore.UPLC.CekMachine.State) (n fuel : Nat) : Nat × NativeOutcome :=
   match σ with
-  | .Halt _ => (n, "halt")
-  | .Error  => (n, "error")
-  | _       => if n < fuel then countSteps sv (step sv σ) (n + 1) fuel else (n, "exhausted")
+  | .Halt _ => (n, .halted)
+  | .Error  => (n, .failed)
+  | _       => if n < fuel then countSteps sv (step sv σ) (n + 1) fuel else (n, .exhausted)
 termination_by fuel - n
 
 /-- How a closed script runs natively. -/
 structure NativeRun where
   /-- How the run (`cekExecuteProgram` or `cekExecuteScriptWithCost`) ends: `halt`, `error`, or
       `exhausted` when it runs out of fuel. -/
-  result : String
+  result : NativeOutcome
   /-- The steps `countSteps` counts, when it ends the way the run does. -/
   steps? : Option Nat
   /-- Best time of the run. -/
@@ -237,12 +238,12 @@ def nativeRun? (withCost : Bool) (script : Name) (args : List PlutusCore.UPLC.Te
     -- The semantics variant `cekExecuteScriptWithCost` runs the script under.
     let sv               := PlutusVersion.toSemanticsVariant ps.lang.toPlutusVersion .postConway
     let (steps, counted) := countSteps sv start 0 fuel
-    let result           :=
+    let result : NativeOutcome :=
       match final with
-      | .Halt _ => "halt"
-      | .Error  => "error"
+      | .Halt _ => .halted
+      | .Error  => .failed
       -- Out of fuel, `cekExecuteScriptWithCost` returns the state it reached.
-      | _       => "exhausted"
+      | _       => .exhausted
     return some
       { result
       , steps? := if counted == result then some steps else none
@@ -252,12 +253,12 @@ def nativeRun? (withCost : Bool) (script : Name) (args : List PlutusCore.UPLC.Te
       }
   let (bestMs, runs, final) ← timeNative (runNative ps.script args fuel)
   let (steps, counted)      := countSteps default start 0 fuel
-  let result                :=
+  let result : NativeOutcome :=
     match final with
-    | .Halt _ => "halt"
+    | .Halt _ => .halted
     -- Legacy runners report `Error` when they run out of fuel.
-    | .Error => if counted == "exhausted" then "exhausted" else "error"
-    | _ => if counted == "exhausted" then "exhausted" else "running"
+    | .Error => if counted == .exhausted then .exhausted else .failed
+    | _ => if counted == .exhausted then .exhausted else .running
   return some
     { result
     , steps? := if counted == result then some steps else none

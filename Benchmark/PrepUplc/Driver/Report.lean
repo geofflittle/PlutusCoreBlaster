@@ -1,5 +1,6 @@
 import Lean.Data.Json
 import Benchmark.PrepUplc.Driver.Cases
+import Benchmark.PrepUplc.NativeOutcome
 
 /-!
 # Benchmark results
@@ -42,7 +43,7 @@ structure Result where
   rssAfterKb       : Option Nat := none
   /-- How the native `cekExecuteProgram` run of a closed program ends: `halt`, `error` or
       `exhausted` (out of fuel). -/
-  nativeResult     : Option String := none
+  nativeResult     : Option NativeOutcome := none
   /-- Machine steps of that run. -/
   cekSteps         : Option Nat := none
   /-- Best time of that run. -/
@@ -86,7 +87,7 @@ def Result.withHarness (r : Result) (j : Json) : Result :=
     peakRssKb    :=  field? j Nat    "peak_rss_kb"
     peakDeltaKb  :=  field? j Nat    "peak_delta_kb"
     rssAfterKb   :=  field? j Nat    "rss_after_kb"
-    nativeResult :=  field? j String "native_result"
+    nativeResult :=  field? j NativeOutcome "native_result"
     cekSteps     :=  field? j Nat    "cek_steps"
     nativeMs     :=  field? j Float  "native_ms"
     nativeRuns   :=  field? j Nat    "native_runs"
@@ -124,13 +125,14 @@ def nativeName (command : String) : String :=
 /-- Whether `#prep_uplc` (or the state of `#prep_uplc_with_cost`) reduced a closed program to the
     state the machine natively ends in. -/
 def Result.fullyEvaluated (r : Result) : Bool :=
-  match r.nativeResult, r.propHead with
-  | some "halt"     , some head => head == "State.Halt"
-  | some "error"    , some head => head == "State.Error"
+  match r.nativeResult with
+  | some .halted => r.propHead == some "State.Halt"
+  | some .failed => r.propHead == some "State.Error"
   -- Both runners preserve unfinished states; older uncosted runs recorded `Error`.
-  | some "exhausted", some head =>
-    head == "State.Eval" || head == "State.Return" || (!r.withCost && head == "State.Error")
-  | _               , _         => false
+  | some .exhausted =>
+    r.propHead == some "State.Eval" || r.propHead == some "State.Return" ||
+      (!r.withCost && r.propHead == some "State.Error")
+  | some .running | none => false
 
 /-- Whether `#prep_uplc_with_cost` reduced the cost of a closed program to a literal. -/
 def Result.costEvaluated (r : Result) : Bool :=
@@ -146,7 +148,7 @@ def int64Max : Nat := 9223372036854775807
 
 /-- Whether a program that halts natively costs the budget its conformance test expects. -/
 def Result.costMatchesExpected? (r : Result) : Option Bool := do
-  guard (r.nativeResult == some "halt")
+  guard (r.nativeResult == some .halted)
   let cpu ← r.costCpu
   let mem ← r.costMem
   return min cpu int64Max == (← r.expectedCpu) && min mem int64Max == (← r.expectedMem)
@@ -388,7 +390,7 @@ def nativeTable (results : Array Result) : String :=
 def topNativeTable (command : String) (results : Array Result) (n : Nat) : String :=
   let rs := results.filter (·.nativeMs.isSome) |>.qsort (λ a b => a.nativeMs.getD 0 > b.nativeMs.getD 0)
   mdTable ["id", "native", "result", "CEK steps", s!"`{command}` ms"] <| (rs.toList.take n).map (λ r =>
-    [r.id, fmtOpt fmtDuration r.nativeMs, fmtOpt id r.nativeResult, fmtOpt toString r.cekSteps,
+    [r.id, fmtOpt fmtDuration r.nativeMs, fmtOpt toString r.nativeResult, fmtOpt toString r.cekSteps,
      fmtOpt fmt1 r.wallMs])
 
 /-- Cases whose optimized term is not the state the program natively ends in. -/
@@ -457,14 +459,14 @@ def costMismatches (results : Array Result) : Array Result :=
 def costMismatchTable (rs : Array Result) (n : Nat) : String :=
   mdTable ["id", "native", "native CPU / memory", "optimized CPU / memory", "expected CPU / memory"] <|
     (rs.toList.take n).map (λ r =>
-      [r.id, fmtOpt id r.nativeResult, fmtCost r.costCpu r.costMem, fmtCost r.propCostCpu r.propCostMem,
+      [r.id, fmtOpt toString r.nativeResult, fmtCost r.costCpu r.costMem, fmtCost r.propCostCpu r.propCostMem,
        fmtCost r.expectedCpu r.expectedMem])
 
 def topCostTable (results : Array Result) (n : Nat) : String :=
   let rs := results.filter (·.costCpu.isSome) |>.qsort (λ a b => a.costCpu.getD 0 > b.costCpu.getD 0)
   mdTable ["id", "result", "CEK steps", "CPU", "memory", "cost evaluated", s!"`{costCommand}` ms"] <|
     (rs.toList.take n).map (λ r =>
-      [r.id, fmtOpt id r.nativeResult, fmtOpt toString r.cekSteps, fmtOpt toString r.costCpu,
+      [r.id, fmtOpt toString r.nativeResult, fmtOpt toString r.cekSteps, fmtOpt toString r.costCpu,
        fmtOpt toString r.costMem, if r.costEvaluated then "yes" else "no", fmtOpt fmt1 r.wallMs])
 
 /-- The cost section of the summary. -/
@@ -519,7 +521,7 @@ def summaryMarkdown (runName : String) (runInfo : Json) (results : Array Result)
     else some (mdSection s!"Not fully evaluated ({partial_.size})" <|
       "Closed programs whose optimized term is not the state the program natively ends in.\n\n" ++
         mdTable ["id", "native", "CEK steps", "prop (objects)"]
-          (partial_.toList.map (λ r => [r.id, fmtOpt id r.nativeResult, fmtOpt toString r.cekSteps, r.propDescr]))),
+          (partial_.toList.map (λ r => [r.id, fmtOpt toString r.nativeResult, fmtOpt toString r.cekSteps, r.propDescr]))),
     if failures.isEmpty then none
     else some (mdSection s!"Failures ({failures.size})" (String.join (failures.toList.map failureLine)))]
   header ++ String.join (sections.filterMap id)
@@ -553,7 +555,7 @@ def slowerFaster (rs : Array (Float × Result × Result)) (threshold : Float) :
 def Result.nativeDescr (r : Result) : String :=
   match r.nativeResult, r.cekSteps with
   | some res, some n => s!"{res}, {n} steps"
-  | some res, none => res
+  | some res, none => toString res
   | none, _ => "–"
 
 /-- Whether the optimized term differs; by hash when both runs have one. -/
