@@ -128,10 +128,11 @@ def Result.fullyEvaluated (r : Result) : Bool :=
   match r.nativeResult with
   | some .halted => r.propHead == some "State.Halt"
   | some .failed => r.propHead == some "State.Error"
-  -- Both runners preserve unfinished states; older uncosted runs recorded `Error`.
+  -- Both runners preserve unfinished states. Runs recorded before the harness reported its
+  -- command ended out of fuel in `Error`.
   | some .exhausted =>
     r.propHead == some "State.Eval" || r.propHead == some "State.Return" ||
-      (!r.withCost && r.propHead == some "State.Error")
+      (r.command.isNone && r.propHead == some "State.Error")
   | some .running | none => false
 
 /-- Whether `#prep_uplc_with_cost` reduced the cost of a closed program to a literal. -/

@@ -267,8 +267,8 @@ def cekExecuteProgram : Program → List Term →  Nat → State := cekExecutePr
 
 /-! ## Execution cost
 
-Costing is opt-in: `runSteps` above does no bookkeeping, and `runStepsWithCost` runs the same
-steps while adding up what they cost.  -/
+Costing is opt-in: `runStepsPreservingState` above does no bookkeeping, and `runStepsWithCost`
+runs the same steps while adding up what they cost.  -/
 
 -- Calculate the cost of a single CEK machine step based on the current state
 def calculateStepCostr (costs : CekMachineCosts) (Sigma : State) : ExBudget :=
@@ -356,9 +356,9 @@ theorem builtinCallsCost_equiv_TR : builtinCallsCost = builtinCallsCostTR := by
       simp [builtinCallsCost, builtinCallsCostTR, builtinCallsCostTR.loop] at *
       rw [ih, ←builtinCallsCostTR.loop_TR_correct]
 
-/-- The steps of `runSteps`, adding the step costs to `stepCost` and recording the builtin calls
-    in `calls`, most recent first. It stops at `Halt`, at `Error`, or when the steps run out, and
-    returns the state reached. -/
+/-- The steps of `runStepsPreservingState`, adding the step costs to `stepCost` and recording the
+    builtin calls in `calls`, most recent first. It stops at `Halt`, at `Error`, or when the steps
+    run out, and returns the state reached. -/
 def runStepsCosting (semanticsVariant : BuiltinSemanticsVariant) (Sigma : State) (n : Nat)
     (stepCost : ExBudget) (calls : List (BuiltinFun × List CekValue)) : State × ExBudget × List (BuiltinFun × List CekValue) :=
   match n, Sigma with
@@ -372,8 +372,8 @@ def runStepsCosting (semanticsVariant : BuiltinSemanticsVariant) (Sigma : State)
          | some call => call :: calls
          | none => calls)
 
-/-- `runSteps` with costs: the state reached in at most `n` steps (`Halt`, `Error`, or where the
-    steps ran out, which `runSteps` turns into `Error`) and what the steps taken cost. -/
+/-- `runStepsPreservingState` with costs: the state reached in at most `n` steps (`Halt`, `Error`,
+    or where the steps ran out) and what the steps taken cost. -/
 def runStepsWithCost (semanticsVariant : BuiltinSemanticsVariant) (Sigma : State) (n : Nat) : State × ExBudget :=
   let r := runStepsCosting semanticsVariant Sigma n ExBudget.zero []
   (r.1, r.2.1 + builtinCallsCost semanticsVariant r.2.2)
@@ -387,11 +387,15 @@ def cekExecuteProgramWithCost (semanticVariant : BuiltinSemanticsVariant) (p : P
 
 /-- Judge a costed run against a budget.
 
-    The Plutus reference (restricting mode) checks the budget at each charge and fails at the
-    first it cannot afford. Costs are never negative, so no part of a run costs more than all of
-    it: when the run ends in `Halt` or `Error`, comparing its total cost against the budget gives
-    the same outcome, and on success the same budget consumed. A run that hit the step limit is
-    out of budget if it already cost too much, and inconclusive otherwise. -/
+    The Plutus reference (restricting mode) charges a builtin call when it makes it, and machine
+    steps in batches of 200, the rest when the program halts. It fails at the first charge it
+    cannot afford. Costs are never negative, so no part of a run costs more than all of it: when
+    the run ends in `Halt`, comparing its total cost against the budget gives the same outcome,
+    and on success the same budget consumed. When it ends in `Error`, the reference never charges
+    the up to 199 steps since its last batch: if only those take the run over the budget, the
+    reference reports an evaluation failure where this reports `BudgetExhausted`. The script
+    fails either way. A run that hit the step limit is out of budget if it already cost too much,
+    and inconclusive otherwise. -/
 def EvaluationResult.ofCostedRun (budget : ExBudget) : State × ExBudget → EvaluationResult
   | (Sigma, cost) =>
       if budget.canAfford cost

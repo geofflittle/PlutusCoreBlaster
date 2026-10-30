@@ -205,8 +205,8 @@ def timeNative (run : IO α) : IO (Float × Nat × α) := do
       return (best.toFloat / 1e6, runs, final)
   termination_by 1000 - runs
 
-/-- Iterates `step` the way `runSteps` does, to count the steps, which `cekExecuteProgram` does not
-    report. -/
+/-- Iterates `step` the way `runStepsPreservingState` does, to count the steps, which
+    `cekExecuteProgram` does not report. -/
 def countSteps (sv : BuiltinSemanticsVariant) (σ : PlutusCore.UPLC.CekMachine.State) (n fuel : Nat) : Nat × NativeOutcome :=
   match σ with
   | .Halt _ => (n, .halted)
@@ -243,7 +243,7 @@ def nativeRun? (withCost : Bool) (script : Name) (args : List PlutusCore.UPLC.Te
       | .Halt _ => .halted
       | .Error  => .failed
       -- Out of fuel, `cekExecuteScriptWithCost` returns the state it reached.
-      | _       => .exhausted
+      | _       => if counted == .exhausted then .exhausted else .running
     return some
       { result
       , steps? := if counted == result then some steps else none
@@ -467,7 +467,8 @@ def elabBenchPrepUplc : CommandElab := (λ stx => withBenchOptions do
     match (← getConstInfo const).type with
     | .const ``PlutusScript _ => pure const
     | .const ``Program _ =>
-      -- `#prep_uplc` wants a `PlutusScript`; the ledger language plays no part in it.
+      -- `#prep_uplc` wants a `PlutusScript`. Its ledger language plays no part in a plain run, but
+      -- in a costed run it selects the builtin semantics and cost model: PlutusV3 gives variant E.
       liftCoreM <| addAndCompile <| .defnDecl {
         name := scriptName, levelParams := [], type := mkConst ``PlutusScript,
         value := mkApp2 (mkConst ``PlutusScript.mk) (mkConst ``PlutusLanguage.PlutusV3) (mkConst const),

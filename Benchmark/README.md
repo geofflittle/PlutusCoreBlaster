@@ -63,9 +63,9 @@ Heartbeats are not reported: the Blaster optimizer resets the counter while it r
 | `rss_before_kb`, `peak_rss_kb`, `rss_after_kb` | resident set size before, at the peak of, and after `#prep_uplc`. The peak is `VmHWM`, reset through `/proc/self/clear_refs` just before the run. |
 | `peak_delta_kb` | `peak_rss_kb − rss_before_kb`, the memory `#prep_uplc` needed. It includes the pages of the memory-mapped `.olean` files it touched. |
 | `command` | the measured command: `#prep_uplc`, or `#prep_uplc_with_cost` in a [costed run](#costed-runs) |
-| `native_result` | how `cekExecuteProgram` (in a costed run, `cekExecuteScriptWithCost`) ends on a closed program: `halt`, `error`, or `exhausted` when it runs out of fuel |
-| `cek_steps` | the machine steps of that run, counted by iterating `step`. Empty when that count ends differently from `cekExecuteProgram`, e.g. after a change to `runSteps`. |
-| `native_ms`, `native_runs` | best time of `cekExecuteProgram` on the program, and how many runs it is the best of |
+| `native_result` | how `cekExecuteProgram` (in a costed run, `cekExecuteScriptWithCost`) ends on a closed program: `halt`, `error`, or `exhausted` when it runs out of fuel. `running` flags a run that stops unfinished although the step count says it should not have. |
+| `cek_steps` | the machine steps of that run, counted by iterating `step`. Empty when that count ends differently from the native run, e.g. after a change to `runStepsPreservingState`. |
+| `native_ms`, `native_runs` | best time of the native run (`cekExecuteProgram`, or `cekExecuteScriptWithCost` in a costed run) on the program, and how many runs it is the best of |
 | `cost_cpu`, `cost_mem` | costed runs: what the native run of a closed program cost, in CPU and memory units |
 | `expected_cpu`, `expected_mem` | the budget a conformance program's test expects it to cost (its `budgetMatches`), if it has one |
 | `prep_steps_per_s`, `native_steps_per_s` | `cek_steps` per second of `#prep_uplc` and of the native run. The `#prep_uplc` rate is given only for the closed programs it fully evaluates, since otherwise it did not take all these steps. It includes the fixed cost of about 0.2 s, so it means something only for programs of thousands of steps. |

@@ -113,16 +113,12 @@ theorem cekExecuteProgramWithSemanticVariant_halt_stable
       rw [stepN_fix sv _ n (Or.inl ⟨V, h⟩) m, h]
 
 @[simp] theorem stepN_halt (sv : BuiltinSemanticsVariant) (V : CekValue) (n : Nat) :
-    stepN sv (State.Halt V) n = State.Halt V := by
-  induction n with
-  | zero => rfl
-  | succ n ih => simpa [stepN]
+    stepN sv (State.Halt V) n = State.Halt V :=
+  stepN_of_terminal sv _ (Or.inl ⟨V, rfl⟩) n
 
 @[simp] theorem stepN_error (sv : BuiltinSemanticsVariant) (n : Nat) :
-    stepN sv State.Error n = State.Error := by
-  induction n with
-  | zero => rfl
-  | succ n ih => simpa [stepN]
+    stepN sv State.Error n = State.Error :=
+  stepN_of_terminal sv _ (Or.inr rfl) n
 
 /-! ## Costs  -/
 
@@ -175,6 +171,20 @@ theorem runStepsCosting_fst (sv : BuiltinSemanticsVariant) (s : State) (n : Nat)
 theorem runStepsWithCost_fst (sv : BuiltinSemanticsVariant) (s : State) (n : Nat) :
     (runStepsWithCost sv s n).1 = stepN sv s n :=
   runStepsCosting_fst sv s n _ _
+
+/-- Costing changes nothing about the state a run reaches, finished or not. -/
+theorem runStepsWithCost_fst_eq_runStepsPreservingState (sv : BuiltinSemanticsVariant) (s : State)
+    (n : Nat) : (runStepsWithCost sv s n).1 = runStepsPreservingState sv s n := by
+  rw [runStepsWithCost_fst, runStepsPreservingState_eq_stepN]
+
+/-- Under the same semantics variant, the costed run of a program reaches the state the uncosted
+    run reaches: `#prep_uplc_with_cost` and `#prep_uplc` agree on PlutusV3 scripts. -/
+theorem cekExecuteProgramWithCost_fst (sv : BuiltinSemanticsVariant) (p : Program)
+    (params : List Term) (n : Nat) :
+    (cekExecuteProgramWithCost sv p params n).1 = cekExecuteProgramWithSemanticVariant sv p params n := by
+  cases p with
+  | Program ver body =>
+      exact runStepsWithCost_fst_eq_runStepsPreservingState sv _ n
 
 /-- Costing changes nothing about where a run halts. -/
 theorem runSteps_halt_iff_runStepsWithCost (sv : BuiltinSemanticsVariant) (s : State)

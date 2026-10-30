@@ -39,8 +39,10 @@ def exhausted (withCost : Bool) (head : String) : Result :=
 
 #guard [false, true].all fun withCost =>
   ["State.Eval", "State.Return"].all fun head => (exhausted withCost head).fullyEvaluated
-#guard (exhausted false "State.Error").fullyEvaluated
-#guard !(exhausted true "State.Error").fullyEvaluated
+-- Current runs preserve the unfinished state, so an `Error` head is a disagreement.
+#guard [false, true].all fun withCost => !(exhausted withCost "State.Error").fullyEvaluated
+-- Runs recorded before the harness reported its command ended out of fuel in `Error`.
+#guard ({ base with nativeResult := some .exhausted, propHead := some "State.Error" } : Result).fullyEvaluated
 #guard !({ base with nativeResult := some .running, propHead := some "State.Eval" } : Result).fullyEvaluated
 
 end Tests.Benchmark.NativeOutcome

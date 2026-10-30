@@ -1,3 +1,4 @@
+import Blaster
 import PlutusCore.UPLC.PreProcess
 import PlutusCore.UPLC.ScriptEncoding.Basic
 
@@ -51,11 +52,20 @@ def preProcessIntegerArg (x : PlutusCore.Integer.Integer) : List PlutusCore.UPLC
 #prep_uplc_with_cost preProcessSaturateCost preProcessSaturate preProcessIntegerArg 150
 
 #guard match preProcessSaturateCost.exec 1 with
-  | (State.Halt (CekValue.VCon (PlutusCore.UPLC.Term.Const.Integer 2)), _) => true
+  | (State.Halt (CekValue.VCon (PlutusCore.UPLC.Term.Const.Integer 2)), ⟨⟨1701241⟩, ⟨7410⟩⟩) => true
   | _ => false
--- Out of steps at `x = 2`: the state reached is not `Halt`.
+-- Out of steps at `x = 2`: the run stops unfinished, having cost what its 150 steps cost.
 #guard match preProcessSaturateCost.exec 2 with
-  | (State.Halt _, _) => false
-  | _ => true
+  | (State.Eval .., ⟨⟨1978449⟩, ⟨8512⟩⟩) => true
+  | _ => false
+
+-- The optimized `prop` agrees with the native run, state and cost. It is not computable, so
+-- Blaster checks it.
+#blaster [preProcessSaturateCost.prop 0
+  = (State.Halt (CekValue.VCon (PlutusCore.UPLC.Term.Const.Integer 0)), ⟨⟨663986⟩, ⟨3502⟩⟩)]
+#blaster [preProcessSaturateCost.prop 1
+  = (State.Halt (CekValue.VCon (PlutusCore.UPLC.Term.Const.Integer 2)), ⟨⟨1701241⟩, ⟨7410⟩⟩)]
+#blaster [(preProcessSaturateCost.prop 2).2 = ⟨⟨1978449⟩, ⟨8512⟩⟩]
+#blaster [match (preProcessSaturateCost.prop 2).1 with | .Eval .. => True | _ => False]
 
 end PlutusCore.UPLC.PreProcess
