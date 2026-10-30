@@ -127,9 +127,9 @@ def Result.fullyEvaluated (r : Result) : Bool :=
   match r.nativeResult, r.propHead with
   | some "halt"     , some head => head == "State.Halt"
   | some "error"    , some head => head == "State.Error"
-  -- Out of fuel, `cekExecuteProgram` ends in `Error`; `cekExecuteScriptWithCost` in the state reached.
+  -- Both runners preserve unfinished states; older uncosted runs recorded `Error`.
   | some "exhausted", some head =>
-    if r.withCost then head == "State.Eval" || head == "State.Return" else head == "State.Error"
+    head == "State.Eval" || head == "State.Return" || (!r.withCost && head == "State.Error")
   | _               , _         => false
 
 /-- Whether `#prep_uplc_with_cost` reduced the cost of a closed program to a literal. -/

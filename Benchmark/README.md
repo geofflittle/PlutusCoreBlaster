@@ -63,7 +63,7 @@ Heartbeats are not reported: the Blaster optimizer resets the counter while it r
 | `rss_before_kb`, `peak_rss_kb`, `rss_after_kb` | resident set size before, at the peak of, and after `#prep_uplc`. The peak is `VmHWM`, reset through `/proc/self/clear_refs` just before the run. |
 | `peak_delta_kb` | `peak_rss_kb − rss_before_kb`, the memory `#prep_uplc` needed. It includes the pages of the memory-mapped `.olean` files it touched. |
 | `command` | the measured command: `#prep_uplc`, or `#prep_uplc_with_cost` in a [costed run](#costed-runs) |
-| `native_result` | how `cekExecuteProgram` (in a costed run, `cekExecuteScriptWithCost`) ends on a closed program: `halt`, `error`, or `exhausted` when it runs out of fuel (`cekExecuteProgram` then ends in `Error`, so `#prep_uplc` sees an error too) |
+| `native_result` | how `cekExecuteProgram` (in a costed run, `cekExecuteScriptWithCost`) ends on a closed program: `halt`, `error`, or `exhausted` when it runs out of fuel |
 | `cek_steps` | the machine steps of that run, counted by iterating `step`. Empty when that count ends differently from `cekExecuteProgram`, e.g. after a change to `runSteps`. |
 | `native_ms`, `native_runs` | best time of `cekExecuteProgram` on the program, and how many runs it is the best of |
 | `cost_cpu`, `cost_mem` | costed runs: what the native run of a closed program cost, in CPU and memory units |
@@ -121,7 +121,8 @@ The functions' symbolic cases also run at the `proofSteps` budget of the proof t
 the Lean-blaster `saturate` proof (7100 steps) and CardanoLedgerApiBlaster's Fibonacci proofs
 (4000 steps).
 
-The cost varies widely. At 2000 steps:
+These measurements were made with the legacy runner, which mapped exhausted fuel to
+`State.Error`. At 2000 steps:
 
 - nonce-list-v3 takes 0.2 s, test9 0.3 s, test4 1.4 s, test8 4.8 s and test3 20 s;
 - test6 takes 144 s and 2.3 GB;
@@ -133,8 +134,8 @@ At their proof budgets, saturate takes 0.6 s and unrolls to a 20k-object term, a
 functions take 5.6 s. The two Fibonacci implementations optimize to the same term (same
 `prop_hash`), which is what CardanoLedgerApiBlaster's equivalence proof of them relies on.
 
-A budget too small to get past a validator's prelude reduces to a mere `State.Error`: test8
-does so at up to 1000 steps.
+The current runner preserves `State.Eval` or `State.Return` when the step limit is reached
+in a validator's prelude. Reports classify this as `exhausted`.
 
 ## How a run works
 
@@ -195,7 +196,7 @@ the driver's `lake build Benchmark` rebuilds the changed modules and `libPlutusC
 
 ### Changing the CEK machine
 
-Every case runs `cekExecuteProgram`, and with it `runSteps` and `step`, twice: symbolically
+Every case runs `cekExecuteProgram`, and with it `runStepsPreservingState` and `step`, twice: symbolically
 through `#prep_uplc`, and compiled in the native run. So a change to
 `PlutusCore/UPLC/CekMachine.lean` shows up in both times. It also shows in the native results
 and step counts, and in the optimized terms. For example, starting every program as
@@ -237,8 +238,8 @@ What changes:
 - The case files set `bench.prepUplc.withCost`, so the harness measures `#prep_uplc_with_cost`,
   with the same arguments.
 - The native run of a closed program is `cekExecuteScriptWithCost` instead of
-  `cekExecuteProgram`, and its cost goes into `cost_cpu` and `cost_mem`. Out of fuel, it ends in
-  the state it reached rather than in `Error`.
+  `cekExecuteProgram`, and its cost goes into `cost_cpu` and `cost_mem`. Both runners preserve
+  the unfinished state when the step limit is reached.
 - The script runs under the builtin semantics of its ledger language, post-Conway: variant E for
   PlutusV3 (the default variant `cekExecuteProgram` uses in a plain run) and D for PlutusV1 and
   PlutusV2.
