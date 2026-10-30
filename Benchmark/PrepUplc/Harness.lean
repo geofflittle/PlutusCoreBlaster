@@ -255,9 +255,9 @@ def nativeRun? (withCost : Bool) (script : Name) (args : List PlutusCore.UPLC.Te
   let result                :=
     match final with
     | .Halt _ => "halt"
-    -- `cekExecuteProgram` also ends in `Error` when it runs out of fuel.
+    -- Legacy runners report `Error` when they run out of fuel.
     | .Error => if counted == "exhausted" then "exhausted" else "error"
-    | _ => "running"
+    | _ => if counted == "exhausted" then "exhausted" else "running"
   return some
     { result
     , steps? := if counted == result then some steps else none
