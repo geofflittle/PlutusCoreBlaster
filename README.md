@@ -68,6 +68,14 @@ For reproducible builds, replace `main` with a commit or release tag that you ha
 
 The CEK machine has four states: `Eval`, `Return`, `Error`, and `Halt`. Its step-limited execution and budget-aware execution use the same UPLC model. Some newer array and value/coin features are not implemented yet; see [Current scope](#current-scope).
 
+The convenience `IsData String` instance and generated text-field codecs use
+UTF-8 bytes in `Data.B`; decoding rejects invalid UTF-8. A claim quantified over
+`String` covers valid UTF-8 text only. Use `ByteString` or raw `Data` for properties
+that must cover arbitrary payloads, including invalid UTF-8. Native UPLC
+`#string` arguments remain `Const.String`; the compiled-interface profile rejects
+native strings nested inside Data containers and keeps runtime inputs as raw
+`Data`.
+
 ## Preparing a UPLC program
 
 `#prep_uplc` takes a named `PlutusScript`, an optional input-conversion function, and a maximum number of CEK steps. It creates a named structure with `lang`, `prop` (the optimized expression for proofs), and `exec` (the original expression for execution). For example, this closed program is adapted from [`PlutusCore/UPLC/PreProcess/Tests.lean`](PlutusCore/UPLC/PreProcess/Tests.lean):
@@ -137,3 +145,9 @@ make bench_prep_uplc BENCH_ARGS="--suite repo,symbolic"
 Bug reports, documentation improvements, tests, and code changes are welcome. Open an [issue](https://github.com/input-output-hk/PlutusCoreBlaster/issues) to discuss a problem or submit a pull request. Before submitting code, run `make check_all`; changes affecting reference behavior may also need a conformance run.
 
 Maintainers: [Jean-Frédéric Etienne](https://github.com/etiennejf), [Romain Soulat](https://github.com/RSoulatIOHK), and [Mark Petruska](https://github.com/mpetruska).
+
+The coordinated assurance runner revision-checks the sibling repositories, then
+selects them using ignored `.lake/package-overrides.json` files. Normal consumers
+use the Git dependency pinned in `lakefile.lean` and `lake-manifest.json` and need
+no sibling checkout. Remove local overrides to return to the published pins.
+The runner rejects existing conflicting overrides instead of replacing them.
